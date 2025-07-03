@@ -56,6 +56,17 @@ def _parse_due_date(date_str):
     print("경고: 유효하지 않은 날짜 형식입니다. YYYY-MM-DD 또는 숫자(X일 뒤) 형식으로 입력해주세요.")
     return None
 
+def _parse_priority(priority_str):
+    priority_map = {
+        'h': '높음',
+        'm': '중간',
+        'l': '낮음',
+        '높음': '높음', # 기존 한국어 입력도 허용
+        '중간': '중간',
+        '낮음': '낮음'
+    }
+    return priority_map.get(priority_str.lower(), '중간') # 기본값은 중간
+
 def _get_sorted_todos(todos_list, sort_by='priority'):
     # 각 할 일에 원래 인덱스 저장 (복사본에만 적용)
     temp_todos = [dict(item) for item in todos_list] # 원본 리스트를 변경하지 않기 위해 복사
@@ -79,7 +90,7 @@ def add_todo(description, due_date=None, priority='중간'):
     todo_item = {
         "description": description,
         "completed": False,
-        "priority": priority
+        "priority": _parse_priority(priority) # _parse_priority 사용
     }
     
     parsed_due_date = _parse_due_date(due_date)
@@ -88,7 +99,7 @@ def add_todo(description, due_date=None, priority='중간'):
 
     todos.append(todo_item)
     save_todos(todos)
-    print(f"할 일 추가: '{description}' (우선순위: {priority})")
+    print(f"할 일 추가: '{todo_item["description"]}' (우선순위: {todo_item["priority"]})")
 
 def edit_todo(display_index, new_description=None, new_due_date=None, new_priority=None):
     todos = load_todos()
@@ -107,11 +118,10 @@ def edit_todo(display_index, new_description=None, new_due_date=None, new_priori
                 todos[original_index]['due_date'] = parsed_new_due_date
                 print(f"할 일 {display_index + 1}의 마감 기한이 수정되었습니다.")
         if new_priority:
-            if new_priority in ['높음', '중간', '낮음']:
-                todos[original_index]['priority'] = new_priority
+            parsed_new_priority = _parse_priority(new_priority)
+            if parsed_new_priority:
+                todos[original_index]['priority'] = parsed_new_priority
                 print(f"할 일 {display_index + 1}의 우선순위가 수정되었습니다.")
-            else:
-                print("경고: 유효하지 않은 우선순위입니다. '높음', '중간', '낮음' 중에서 선택해주세요.")
         save_todos(todos)
     else:
         print("유효하지 않은 할 일 번호입니다.")
@@ -337,7 +347,7 @@ def main():
     add_parser = subparsers.add_parser("add", help="새로운 할 일을 추가합니다.")
     add_parser.add_argument("description", type=str, help="추가할 할 일 내용")
     add_parser.add_argument("--due", type=str, help="마감 기한 (YYYY-MM-DD 형식)", dest="due_date")
-    add_parser.add_argument("--priority", type=str, choices=['높음', '중간', '낮음'], default='중간', help="우선순위 (높음, 중간, 낮음)")
+    add_parser.add_argument("--priority", type=str, choices=['h', 'm', 'l', '높음', '중간', '낮음'], default='m', help="우선순위 (h, m, l 또는 높음, 중간, 낮음)")
 
     # 'list' 명령어
     list_parser = subparsers.add_parser("list", help="할 일 목록을 보여줍니다.")
@@ -361,7 +371,7 @@ def main():
     edit_parser.add_argument("index", type=int, help="수정할 할 일의 번호")
     edit_parser.add_argument("--desc", type=str, help="새로운 할 일 내용", dest="new_description")
     edit_parser.add_argument("--due", type=str, help="새로운 마감 기한 (YYYY-MM-DD)", dest="new_due_date")
-    edit_parser.add_argument("--priority", type=str, choices=['높음', '중간', '낮음'], help="새로운 우선순위", dest="new_priority")
+    edit_parser.add_argument("--priority", type=str, choices=['h', 'm', 'l', '높음', '중간', '낮음'], help="새로운 우선순위", dest="new_priority")
 
     # 'clear' 명령어
     subparsers.add_parser("clear", help="완료된 모든 할 일을 삭제합니다.")
