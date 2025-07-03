@@ -273,9 +273,10 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
     # 마감 기한 지남/일반 구분은 시각적으로만, 번호는 연속
     today = datetime.now().date()
     overdue_header_printed = False
-    regular_header_printed = False
-    last_priority = None
-
+    # 우선순위별로 섹션을 항상 표시하기 위해 미리 그룹화
+    priority_order = ['높음', '중간', '낮음']
+    priority_map = {'높음': [], '중간': [], '낮음': []}
+    overdue_todos = []
     for idx, todo in enumerate(sorted_todos):
         is_overdue = False
         if "due_date" in todo and not todo["completed"]:
@@ -285,86 +286,90 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
                     is_overdue = True
             except ValueError:
                 pass
-
-        # 마감 기한 지남 헤더
-        if is_overdue and not overdue_header_printed:
-            header_text = f" 마감 기한 지남 "
-            header_text_len = len(header_text)
-            line_width = 40
-            total_dashes = line_width - header_text_len
-            left_dashes = total_dashes // 2
-            right_dashes = total_dashes - left_dashes
-            combined_header = (
-                f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * left_dashes +
-                f"{Colors.BOLD}{Colors.RED}{header_text}{Colors.ENDC}" +
-                f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * right_dashes
-            )
-            print(combined_header)
-            overdue_header_printed = True
-        # 일반 할 일 헤더 (우선순위별)
-        if not is_overdue and sort_by == 'priority':
-            current_priority = todo.get('priority', '중간')
-            if current_priority != last_priority:
-                if idx > 0: # 첫 그룹이 아닐 때만 빈 줄 추가
-                    print()
-                header_text = f" {current_priority} 우선순위 "
-                header_text_len = len(header_text)
-                line_width = 40
-                total_dashes = line_width - header_text_len
-                left_dashes = total_dashes // 2
-                right_dashes = total_dashes - left_dashes
-                combined_header = (
-                    f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * left_dashes +
-                    f"{Colors.BOLD}{Colors.YELLOW}{header_text}{Colors.ENDC}" +
-                    f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * right_dashes
-                )
-                print(combined_header)
-                last_priority = current_priority
-
-        # 상태 아이콘 및 텍스트
         if is_overdue and not todo["completed"]:
+            overdue_todos.append((idx, todo))
+        else:
+            prio = todo.get('priority', '중간')
+            if prio not in priority_map:
+                priority_map[prio] = []
+            priority_map[prio].append((idx, todo))
+
+    # 마감 기한 지남 헤더 및 일정 출력
+    if overdue_todos:
+        header_text = f" 마감 기한 지남 "
+        header_text_len = len(header_text)
+        line_width = 40
+        total_dashes = line_width - header_text_len
+        left_dashes = total_dashes // 2
+        right_dashes = total_dashes - left_dashes
+        combined_header = (
+            f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * left_dashes +
+            f"{Colors.BOLD}{Colors.RED}{header_text}{Colors.ENDC}" +
+            f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * right_dashes
+        )
+        print(combined_header)
+        for idx, todo in overdue_todos:
             status_icon = f"{Colors.RED}✗{Colors.ENDC}"
             status_text = f"{Colors.RED}마감 지남{Colors.ENDC}"
-        else:
-            status_icon = f"{Colors.GREEN}✓{Colors.ENDC}" if todo["completed"] else f"{Colors.RED}✗{Colors.ENDC}"
-            status_text = f"{Colors.GRAY}완료{Colors.ENDC}" if todo["completed"] else f"{Colors.YELLOW}미완료{Colors.ENDC}"
-
-        # 우선순위 색상
-        priority_color = {
-            '높음': Colors.RED,
-            '중간': Colors.CYAN,
-            '낮음': Colors.GREEN
-        }.get(todo.get('priority', '중간'), Colors.CYAN)
-        priority_str = f"{priority_color}{todo.get('priority', '중간')}{Colors.ENDC}"
-
-        # 할 일 설명 스타일
-        if is_overdue and not todo["completed"]:
             description = f"{Colors.BOLD}{Colors.RED}{todo['description']}{Colors.ENDC}"
-        else:
-            description_color = Colors.GRAY if todo["completed"] else Colors.BOLD
-            description = f"{description_color}{todo['description']}{Colors.ENDC}"
-
-        # 마감 기한 정보
-        due_date_info = ""
-        if "due_date" in todo:
-            try:
-                due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d')
-                if due_date_obj.date() == today:
-                    due_date_info = f" {Colors.YELLOW}(오늘 마감: {todo['due_date']}){Colors.ENDC}"
-                elif due_date_obj < datetime.now():
-                    if is_overdue and not todo["completed"]:
+            due_date_info = ""
+            if "due_date" in todo:
+                try:
+                    due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d')
+                    if due_date_obj.date() == today:
+                        due_date_info = f" {Colors.YELLOW}(오늘 마감: {todo['due_date']}){Colors.ENDC}"
+                    elif due_date_obj < datetime.now():
                         due_date_info = f" {Colors.RED}(마감: {todo['due_date']}){Colors.ENDC}"
                     else:
-                        due_date_info = f" {Colors.RED}(마감 지남: {todo['due_date']}){Colors.ENDC}"
-                else:
-                    due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
-            except ValueError:
-                due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-
-        # 최종 출력 (번호는 1부터 연속)
-        print(f"{idx+1}. {status_icon} [{status_text}] {description}{due_date_info}")
-
-    print(f"{Colors.BOLD}{Colors.BLUE}─{Colors.ENDC}" * 40)
+                        due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
+                except ValueError:
+                    due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
+            print(f"{idx+1}. {status_icon} [{status_text}] {description}{due_date_info}")
+        print()  # 마감 기한 지남과 다음 섹션 사이 공백
+    # 우선순위별 헤더 및 일정 출력 (항상 표시)
+    for i, prio in enumerate(priority_order):
+        header_text = f" {prio} 우선순위 "
+        header_text_len = len(header_text)
+        line_width = 40
+        total_dashes = line_width - header_text_len
+        left_dashes = total_dashes // 2
+        right_dashes = total_dashes - left_dashes
+        combined_header = (
+            f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * left_dashes +
+            f"{Colors.BOLD}{Colors.YELLOW}{header_text}{Colors.ENDC}" +
+            f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * right_dashes
+        )
+        print(combined_header)
+        prio_todos = priority_map[prio]
+        if not prio_todos:
+            print("-")
+        else:
+            for idx, todo in prio_todos:
+                status_icon = f"{Colors.GREEN}✓{Colors.ENDC}" if todo["completed"] else f"{Colors.RED}✗{Colors.ENDC}"
+                status_text = f"{Colors.GRAY}완료{Colors.ENDC}" if todo["completed"] else f"{Colors.YELLOW}미완료{Colors.ENDC}"
+                priority_color = {
+                    '높음': Colors.RED,
+                    '중간': Colors.CYAN,
+                    '낮음': Colors.GREEN
+                }.get(prio, Colors.CYAN)
+                priority_str = f"{priority_color}{prio}{Colors.ENDC}"
+                description_color = Colors.GRAY if todo["completed"] else Colors.BOLD
+                description = f"{description_color}{todo['description']}{Colors.ENDC}"
+                due_date_info = ""
+                if "due_date" in todo:
+                    try:
+                        due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d')
+                        if due_date_obj.date() == today:
+                            due_date_info = f" {Colors.YELLOW}(오늘 마감: {todo['due_date']}){Colors.ENDC}"
+                        elif due_date_obj < datetime.now():
+                            due_date_info = f" {Colors.RED}(마감 지남: {todo['due_date']}){Colors.ENDC}"
+                        else:
+                            due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
+                    except ValueError:
+                        due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
+                print(f"{idx+1}. {status_icon} [{status_text}] {description}{due_date_info}")
+        print()  # 각 우선순위 섹션 사이 공백
+    
 
 def complete_todo(display_index):
     push_undo()
@@ -430,7 +435,7 @@ def main():
         description=description_text,
         formatter_class=argparse.RawTextHelpFormatter
     )
-    subparsers = parser.add_subparsers(dest="command", help="사용 가능한 명령어", required=True)
+    subparsers = parser.add_subparsers(dest="command", help=argparse.SUPPRESS)
 
     # 'add' 명령어
     add_parser = subparsers.add_parser("add", help="새로운 할 일을 추가합니다.")
@@ -485,6 +490,10 @@ def main():
     subparsers.add_parser("redo", help="마지막 실행 취소를 다시 실행합니다.")
 
     args = parser.parse_args()
+
+    if args.command is None:
+        parser.print_help()
+        return
 
     if args.command == "add":
         add_todo(args.description, args.due_date, args.priority)
