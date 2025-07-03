@@ -12,28 +12,15 @@ CLI 기반 일정/할 일(todo) 관리 프로그램입니다.
 
 ## 설치 및 실행 방법
 
-### 1. PyPI를 통해 설치 (권장)
+### 1. 설치 (아주 간단!)
 
-`cli-todo-kor`는 Python Package Index (PyPI)에 등록되어 있어 `pip`를 통해 설치할 수 있습니다.
-
-#### (1) Python 3.7 이상 필요
-
-#### (2) 설치
-시스템 파이썬 환경과의 충돌을 피하고 안정적인 사용을 위해 가상 환경(Virtual Environment) 사용을 권장합니다.
+아래 명령어 한 줄이면 바로 설치할 수 있습니다.
 
 ```bash
-# 1. 가상 환경 생성 (프로젝트 폴더 밖, 예를 들어 홈 디렉토리에서)
-python3 -m venv cli_todo_env
-
-# 2. 가상 환경 활성화
-source cli_todo_env/bin/activate
-
-# 3. cli-todo-kor 설치
 pip install cli-todo-kor
 ```
 
-#### (3) 사용법
-가상 환경이 활성화된 상태에서 `todo` 명령어를 사용합니다.
+설치 후 터미널에서 아래처럼 사용하세요:
 
 ```bash
 todo add "할 일 내용" --priority h --due 2024-06-30
@@ -46,33 +33,13 @@ todo undo
 todo redo
 ```
 
-#### (4) 삭제(제거)
+### 2. 삭제(제거)
 ```bash
 pip uninstall cli-todo-kor
-# 가상 환경 비활성화
-deactivate
-# 가상 환경 디렉토리 삭제 (예: rm -rf cli_todo_env)
-```
-
-### 2. 개발자용 설치 (소스 코드에서 직접 실행)
-
-프로젝트 소스 코드를 직접 수정하며 개발할 경우, "편집 가능(editable)" 모드로 설치할 수 있습니다.
-
-```bash
-# 1. 소스코드 다운로드
-git clone https://github.com/sis9772/cli-todo-kor.git
-cd cli-todo-kor
-
-# 2. 가상 환경 생성 및 활성화 (프로젝트 루트 디렉토리에서)
-python3 -m venv venv
-source venv/bin/activate
-
-# 3. 편집 가능 모드로 설치
-pip install -e .
 ```
 
 ### 3. (참고) 파이썬 파일 직접 실행
-기존처럼 아래 방식도 동작합니다. (가상 환경 활성화 필요 없음)
+아래 방식도 동작합니다.
 ```bash
 python3 src/todo.py add "할 일 내용"
 ```
