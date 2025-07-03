@@ -1,0 +1,12 @@
+[
+    {
+        "description": "코딩하기",
+        "completed": false
+    },
+    {
+        "description": "배송 받기\n",
+        "completed": false,
+        "priority": "낮음",
+        "due_date": "2025-07-04"
+    }
+]
