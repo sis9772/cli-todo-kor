@@ -1,6 +1,6 @@
 # cli-todo-kor
 
-간편하고 CLI 기반 일정/할 일(todo) 관리 프로그램입니다.
+간편하게 쓸 수 있는 CLI 기반 일정/할 일(todo) 관리 프로그램입니다.
 
 ## 주요 특징
 - **직관적인 명령어**로 할 일 추가/수정/삭제/완료/검색/정렬
@@ -12,47 +12,68 @@
 
 ## 설치 및 실행 방법
 
-### 1. pip로 설치하여 전역 명령어(todo)로 사용하기
+### 1. PyPI를 통해 설치 (권장)
+
+`cli-todo-kor`는 Python Package Index (PyPI)에 등록되어 있어 `pip`를 통해 쉽게 설치할 수 있습니다.
 
 #### (1) Python 3.7 이상 필요
 
 #### (2) 설치
-```bash
-# 소스코드 다운로드
- git clone https://github.com/sis9772/cli-todo-kor.git
- cd cli-todo-kor
+시스템 파이썬 환경과의 충돌을 피하고 안정적인 사용을 위해 **가상 환경(Virtual Environment)** 사용을 강력히 권장합니다.
 
-# pip로 설치 (권장)
- pip install .
-# 또는 pip3 install .
+```bash
+# 1. 가상 환경 생성 (프로젝트 폴더 밖, 예를 들어 홈 디렉토리에서)
+python3 -m venv cli_todo_env
+
+# 2. 가상 환경 활성화
+source cli_todo_env/bin/activate
+
+# 3. cli-todo-kor 설치
+pip install cli-todo-kor
 ```
 
 #### (3) 사용법
+가상 환경이 활성화된 상태에서 `todo` 명령어를 사용합니다.
+
 ```bash
 # 이제 어디서든 아래처럼 사용 가능!
- todo add "할 일 내용" --priority h --due 2024-06-30
- todo list
- todo complete 2
- todo delete 3
- todo edit 1 --desc "새로운 내용" --priority m --due 2024-07-01
- todo search "키워드"
- todo undo
- todo redo
+todo add "할 일 내용" --priority h --due 2024-06-30
+todo list
+todo complete 2
+todo delete 3
+todo edit 1 --desc "새로운 내용" --priority m --due 2024-07-01
+todo search "키워드"
+todo undo
+todo redo
 ```
 
 #### (4) 삭제(제거)
 ```bash
 pip uninstall cli-todo-kor
-# 또는 pip3 uninstall cli-todo-kor
+# 가상 환경 비활성화
+deactivate
+# 가상 환경 디렉토리 삭제 (예: rm -rf cli_todo_env)
 ```
 
-### 2. 환경별 참고사항
-- **윈도우**: Python이 PATH에 등록되어 있어야 하며, pip로 설치하면 `todo.exe`가 자동 등록됩니다. 명령 프롬프트/PowerShell에서 바로 사용 가능.
-- **맥/리눅스**: pip로 설치하면 `todo` 명령어가 `/usr/local/bin` 또는 가상환경 bin에 등록됩니다. 터미널에서 바로 사용 가능.
-- **가상환경**: 가상환경 내에서 pip install . 하면 해당 환경에서만 todo 명령어 사용 가능.
+### 2. 개발자용 설치 (소스 코드에서 직접 실행)
+
+프로젝트 소스 코드를 직접 수정하며 개발할 경우, "편집 가능(editable)" 모드로 설치할 수 있습니다.
+
+```bash
+# 1. 소스코드 다운로드
+git clone https://github.com/sis9772/cli-todo-kor.git
+cd cli-todo-kor
+
+# 2. 가상 환경 생성 및 활성화 (프로젝트 루트 디렉토리에서)
+python3 -m venv venv
+source venv/bin/activate
+
+# 3. 편집 가능 모드로 설치
+pip install -e .
+```
 
 ### 3. (참고) 파이썬 파일 직접 실행
-기존처럼 아래 방식도 동작합니다.
+기존처럼 아래 방식도 동작합니다. (가상 환경 활성화 필요 없음)
 ```bash
 python3 src/todo.py add "할 일 내용"
 ```
@@ -60,40 +81,40 @@ python3 src/todo.py add "할 일 내용"
 ## 사용법 예시
 ### 할 일 추가
 ```bash
-python3 todo.py add "할 일 내용" --priority h --due 3
+todo add "할 일 내용" --priority h --due 3
 ```
 
 ### 할 일 목록 보기
 ```bash
-python3 todo.py list
+todo list
 ```
 
 ### 할 일 완료 처리
 ```bash
-python3 todo.py complete 2
+todo complete 2
 ```
 
 ### 할 일 삭제
 ```bash
-python3 todo.py delete 3
+todo delete 3
 ```
 
 ### 할 일 수정
 ```bash
-python3 todo.py edit 1 --desc "새로운 내용" --priority m --due 2
+todo edit 1 --desc "새로운 내용" --priority m --due 2
 ```
 
 ### 검색/정렬/필터
 ```bash
-python3 todo.py search "키워드"
-python3 todo.py list --sort-by due-date
-python3 todo.py list --status completed
+todo search "키워드"
+todo list --sort-by due-date
+todo list --status completed
 ```
 
 ### Undo/Redo
 ```bash
-python3 todo.py undo
-python3 todo.py redo
+todo undo
+todo redo
 ```
 
 ## 명령어 요약
