@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cli-todo-kor"
-version = "0.1.10"
+version = "0.1.11"
 description = "한글 CLI Todo List 프로그램"
 authors = [
     { name="sis9772", email="sis9772@naver.com" }
