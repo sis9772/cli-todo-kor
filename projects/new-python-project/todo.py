@@ -5,6 +5,8 @@ import os
 from datetime import datetime, timedelta
 
 TODO_FILE = 'todos.json'
+UNDO_FILE = '.todos_undo.json'
+REDO_FILE = '.todos_redo.json'
 
 # ANSI Color Codes
 class Colors:
@@ -76,7 +78,21 @@ def _get_sorted_todos(todos_list, sort_by='priority'):
     # 정렬 로직
     if sort_by == 'priority':
         priority_map = {'높음': 0, '중간': 1, '낮음': 2}
-        temp_todos.sort(key=lambda x: (priority_map.get(x.get('priority', '중간'), 1), x['original_index']))
+        today = datetime.now().date()
+        def sort_key(x):
+            # 마감 기한 지남 여부
+            overdue = 0
+            if 'due_date' in x and not x.get('completed', False):
+                try:
+                    due_date_obj = datetime.strptime(x['due_date'], '%Y-%m-%d').date()
+                    if due_date_obj < today:
+                        overdue = -1 # 마감 지남이면 더 앞으로
+                except ValueError:
+                    pass
+            # 마감 지남이면 -1, 아니면 0
+            overdue_sort = 0 if overdue == 0 else -1
+            return (overdue_sort, priority_map.get(x.get('priority', '중간'), 1), x['original_index'])
+        temp_todos.sort(key=sort_key)
     elif sort_by == 'due-date':
         temp_todos.sort(key=lambda x: (x.get('due_date') is None, x.get('due_date', '9999-99-99'), x['original_index']))
     elif sort_by == 'description':
@@ -85,7 +101,85 @@ def _get_sorted_todos(todos_list, sort_by='priority'):
         temp_todos.sort(key=lambda x: (x['completed'], x['original_index']))
     return temp_todos
 
+def push_undo():
+    todos = load_todos()
+    undo_stack = []
+    if os.path.exists(UNDO_FILE):
+        with open(UNDO_FILE, 'r', encoding='utf-8') as f:
+            try:
+                undo_stack = json.load(f)
+            except json.JSONDecodeError:
+                undo_stack = []
+    undo_stack.append(todos)
+    with open(UNDO_FILE, 'w', encoding='utf-8') as f:
+        json.dump(undo_stack, f, indent=4, ensure_ascii=False)
+
+def pop_undo():
+    if not os.path.exists(UNDO_FILE):
+        print('실행 취소할 작업이 없습니다.')
+        return
+    with open(UNDO_FILE, 'r', encoding='utf-8') as f:
+        try:
+            undo_stack = json.load(f)
+        except json.JSONDecodeError:
+            undo_stack = []
+    if not undo_stack:
+        print('실행 취소할 작업이 없습니다.')
+        return
+    current = load_todos()
+    last = undo_stack.pop()
+    # redo에 현재 상태 push
+    redo_stack = []
+    if os.path.exists(REDO_FILE):
+        with open(REDO_FILE, 'r', encoding='utf-8') as f:
+            try:
+                redo_stack = json.load(f)
+            except json.JSONDecodeError:
+                redo_stack = []
+    redo_stack.append(current)
+    with open(REDO_FILE, 'w', encoding='utf-8') as f:
+        json.dump(redo_stack, f, indent=4, ensure_ascii=False)
+    # undo pop한 상태로 복원
+    save_todos(last)
+    with open(UNDO_FILE, 'w', encoding='utf-8') as f:
+        json.dump(undo_stack, f, indent=4, ensure_ascii=False)
+    print('마지막 작업을 실행 취소했습니다.')
+    list_todos()
+
+def pop_redo():
+    if not os.path.exists(REDO_FILE):
+        print('다시 실행할 작업이 없습니다.')
+        return
+    with open(REDO_FILE, 'r', encoding='utf-8') as f:
+        try:
+            redo_stack = json.load(f)
+        except json.JSONDecodeError:
+            redo_stack = []
+    if not redo_stack:
+        print('다시 실행할 작업이 없습니다.')
+        return
+    current = load_todos()
+    last = redo_stack.pop()
+    # undo에 현재 상태 push
+    undo_stack = []
+    if os.path.exists(UNDO_FILE):
+        with open(UNDO_FILE, 'r', encoding='utf-8') as f:
+            try:
+                undo_stack = json.load(f)
+            except json.JSONDecodeError:
+                undo_stack = []
+    undo_stack.append(current)
+    with open(UNDO_FILE, 'w', encoding='utf-8') as f:
+        json.dump(undo_stack, f, indent=4, ensure_ascii=False)
+    # redo pop한 상태로 복원
+    save_todos(last)
+    with open(REDO_FILE, 'w', encoding='utf-8') as f:
+        json.dump(redo_stack, f, indent=4, ensure_ascii=False)
+    print('마지막 실행 취소를 다시 실행했습니다.')
+    list_todos()
+
 def add_todo(description, due_date=None, priority='중간'):
+    push_undo()
     todos = load_todos()
     todo_item = {
         "description": description,
@@ -100,8 +194,10 @@ def add_todo(description, due_date=None, priority='중간'):
     todos.append(todo_item)
     save_todos(todos)
     print(f"할 일 추가: '{todo_item["description"]}' (우선순위: {todo_item["priority"]})")
+    list_todos()
 
 def edit_todo(display_index, new_description=None, new_due_date=None, new_priority=None):
+    push_undo()
     todos = load_todos()
     sorted_todos = _get_sorted_todos(todos) # 기본 정렬 (우선순위)
 
@@ -125,6 +221,7 @@ def edit_todo(display_index, new_description=None, new_due_date=None, new_priori
         save_todos(todos)
     else:
         print("유효하지 않은 할 일 번호입니다.")
+    list_todos()
 
 def list_todos(status_filter=None, search_term=None, sort_by='priority'):
     todos = load_todos()
@@ -173,117 +270,104 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
 
     print(f"{Colors.GRAY}  전체: {total_todos} | 미완료: {uncompleted_todos} | 오늘 마감: {today_due_todos}{Colors.ENDC}\n")
 
-    display_counter = 0
-    
-    # 마감 기한 지난 할 일 분리
-    overdue_todos = []
-    regular_todos = []
+    # 마감 기한 지남/일반 구분은 시각적으로만, 번호는 연속
     today = datetime.now().date()
+    overdue_header_printed = False
+    regular_header_printed = False
+    last_priority = None
 
-    for todo in sorted_todos:
+    for idx, todo in enumerate(sorted_todos):
+        is_overdue = False
         if "due_date" in todo and not todo["completed"]:
             try:
                 due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d').date()
                 if due_date_obj < today:
-                    overdue_todos.append(todo)
-                else:
-                    regular_todos.append(todo)
+                    is_overdue = True
             except ValueError:
-                regular_todos.append(todo) # 잘못된 날짜 형식은 일반 할 일로 처리
-        else:
-            regular_todos.append(todo)
+                pass
 
-    # 마감 기한 지난 할 일 출력
-    if overdue_todos:
-        header_text = f" 마감 기한 지남 "
-        header_text_len = len(header_text)
-        line_width = 40
-        total_dashes = line_width - header_text_len
-        left_dashes = total_dashes // 2
-        right_dashes = total_dashes - left_dashes
-        
-        combined_header = (
-            f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * left_dashes +
-            f"{Colors.BOLD}{Colors.RED}{header_text}{Colors.ENDC}" +
-            f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * right_dashes
-        )
-        print(combined_header)
-        for todo in overdue_todos:
-            display_counter += 1
-            status_icon = f"{Colors.RED}✗{Colors.ENDC}"
-            status_text = f"{Colors.RED}마감 지남{Colors.ENDC}"
-            description = f"{Colors.BOLD}{Colors.RED}{todo['description']}{Colors.ENDC}"
-            due_date_info = f" {Colors.RED}(마감: {todo['due_date']}){Colors.ENDC}"
-            print(f"{display_counter}. {status_icon} [{status_text}] {description}{due_date_info}")
-        print()
-
-    # 일반 할 일 출력
-    last_priority = None
-    for todo in regular_todos:
-        current_priority = todo.get('priority', '중간')
-
-        # 우선순위별 구분선 및 헤더
-        if sort_by == 'priority' and current_priority != last_priority:
-            if display_counter > 0: # 첫 그룹이 아닐 때만 빈 줄 추가
-                print()
-            header_text = f" {current_priority} 우선순위 "
+        # 마감 기한 지남 헤더
+        if is_overdue and not overdue_header_printed:
+            header_text = f" 마감 기한 지남 "
             header_text_len = len(header_text)
-            
             line_width = 40
-            
             total_dashes = line_width - header_text_len
             left_dashes = total_dashes // 2
             right_dashes = total_dashes - left_dashes
-            
             combined_header = (
-                f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * left_dashes +
-                f"{Colors.BOLD}{Colors.YELLOW}{header_text}{Colors.ENDC}" +
-                f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * right_dashes
+                f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * left_dashes +
+                f"{Colors.BOLD}{Colors.RED}{header_text}{Colors.ENDC}" +
+                f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * right_dashes
             )
             print(combined_header)
-            last_priority = current_priority
-
-        display_counter += 1
+            overdue_header_printed = True
+        # 일반 할 일 헤더 (우선순위별)
+        if not is_overdue and sort_by == 'priority':
+            current_priority = todo.get('priority', '중간')
+            if current_priority != last_priority:
+                if idx > 0: # 첫 그룹이 아닐 때만 빈 줄 추가
+                    print()
+                header_text = f" {current_priority} 우선순위 "
+                header_text_len = len(header_text)
+                line_width = 40
+                total_dashes = line_width - header_text_len
+                left_dashes = total_dashes // 2
+                right_dashes = total_dashes - left_dashes
+                combined_header = (
+                    f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * left_dashes +
+                    f"{Colors.BOLD}{Colors.YELLOW}{header_text}{Colors.ENDC}" +
+                    f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * right_dashes
+                )
+                print(combined_header)
+                last_priority = current_priority
 
         # 상태 아이콘 및 텍스트
-        status_icon = f"{Colors.GREEN}✓{Colors.ENDC}" if todo["completed"] else f"{Colors.RED}✗{Colors.ENDC}"
-        status_text = f"{Colors.GRAY}완료{Colors.ENDC}" if todo["completed"] else f"{Colors.YELLOW}미완료{Colors.ENDC}"
+        if is_overdue and not todo["completed"]:
+            status_icon = f"{Colors.RED}✗{Colors.ENDC}"
+            status_text = f"{Colors.RED}마감 지남{Colors.ENDC}"
+        else:
+            status_icon = f"{Colors.GREEN}✓{Colors.ENDC}" if todo["completed"] else f"{Colors.RED}✗{Colors.ENDC}"
+            status_text = f"{Colors.GRAY}완료{Colors.ENDC}" if todo["completed"] else f"{Colors.YELLOW}미완료{Colors.ENDC}"
 
-        # 우선순위 색상 (고정된 ANSI 코드 사용)
+        # 우선순위 색상
         priority_color = {
             '높음': Colors.RED,
             '중간': Colors.CYAN,
             '낮음': Colors.GREEN
-        }.get(current_priority, Colors.CYAN) # 기본값은 중간
-
-        priority_str = f"{priority_color}{current_priority}{Colors.ENDC}"
+        }.get(todo.get('priority', '중간'), Colors.CYAN)
+        priority_str = f"{priority_color}{todo.get('priority', '중간')}{Colors.ENDC}"
 
         # 할 일 설명 스타일
-        description_color = Colors.GRAY if todo["completed"] else Colors.BOLD # 완료되면 회색, 아니면 굵게
-        description = f"{description_color}{todo['description']}{Colors.ENDC}"
+        if is_overdue and not todo["completed"]:
+            description = f"{Colors.BOLD}{Colors.RED}{todo['description']}{Colors.ENDC}"
+        else:
+            description_color = Colors.GRAY if todo["completed"] else Colors.BOLD
+            description = f"{description_color}{todo['description']}{Colors.ENDC}"
 
         # 마감 기한 정보
         due_date_info = ""
         if "due_date" in todo:
             try:
                 due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d')
-                today = datetime.now().date()
                 if due_date_obj.date() == today:
                     due_date_info = f" {Colors.YELLOW}(오늘 마감: {todo['due_date']}){Colors.ENDC}"
                 elif due_date_obj < datetime.now():
-                    due_date_info = f" {Colors.RED}(마감 지남: {todo['due_date']}){Colors.ENDC}"
+                    if is_overdue and not todo["completed"]:
+                        due_date_info = f" {Colors.RED}(마감: {todo['due_date']}){Colors.ENDC}"
+                    else:
+                        due_date_info = f" {Colors.RED}(마감 지남: {todo['due_date']}){Colors.ENDC}"
                 else:
                     due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
             except ValueError:
                 due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
 
-
-        # 최종 출력
-        print(f"{display_counter}. {status_icon} [{status_text}] {description}{due_date_info}")
+        # 최종 출력 (번호는 1부터 연속)
+        print(f"{idx+1}. {status_icon} [{status_text}] {description}{due_date_info}")
 
     print(f"{Colors.BOLD}{Colors.BLUE}─{Colors.ENDC}" * 40)
 
 def complete_todo(display_index):
+    push_undo()
     todos = load_todos()
     sorted_todos = _get_sorted_todos(todos) # 기본 정렬 (우선순위)
 
@@ -299,8 +383,10 @@ def complete_todo(display_index):
             print(f"할 일 '{todos[original_index]['description']}'은(는) 이미 완료되었습니다.")
     else:
         print("유효하지 않은 할 일 번호입니다.")
+    list_todos()
 
 def delete_todo(display_index):
+    push_undo()
     todos = load_todos()
     sorted_todos = _get_sorted_todos(todos) # 기본 정렬 (우선순위)
 
@@ -313,8 +399,10 @@ def delete_todo(display_index):
         print(f"할 일 '{deleted_todo['description']}'을(를) 삭제했습니다.")
     else:
         print("유효하지 않은 할 일 번호입니다.")
+    list_todos()
 
 def clear_completed_todos():
+    push_undo()
     todos = load_todos()
     initial_count = len(todos)
     todos = [todo for todo in todos if not todo['completed']]
@@ -325,6 +413,7 @@ def clear_completed_todos():
         print(f"완료된 할 일 {cleared_count}개를 삭제했습니다.")
     else:
         print("삭제할 완료된 할 일이 없습니다.")
+    list_todos()
 
 def main():
     todo_ascii_art = """
@@ -335,7 +424,7 @@ def main():
    ██║   ╚██████╔╝╚██████╔╝██████╔╝ 
    ╚═╝    ╚═════╝  ╚═════╝ ╚═════╝  
 """
-    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자\n\n사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n\n각 명령어의 상세 도움말: python3 todo.py <명령어> -h"
+    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자\n\n사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n  undo      마지막 작업을 실행 취소합니다.\n  redo      마지막 실행 취소를 다시 실행합니다.\n\n각 명령어의 상세 도움말: python3 todo.py <명령어> -h"
 
     parser = argparse.ArgumentParser(
         description=description_text,
@@ -347,7 +436,14 @@ def main():
     add_parser = subparsers.add_parser("add", help="새로운 할 일을 추가합니다.")
     add_parser.add_argument("description", type=str, help="추가할 할 일 내용")
     add_parser.add_argument("--due", type=str, help="마감 기한 (YYYY-MM-DD 형식)", dest="due_date")
-    add_parser.add_argument("--priority", type=str, choices=['h', 'm', 'l', '높음', '중간', '낮음'], default='m', help="우선순위 (h, m, l 또는 높음, 중간, 낮음)")
+    add_parser.add_argument(
+        "--priority",
+        type=str,
+        choices=['h', 'm', 'l', '높음', '중간', '낮음'],
+        default='m',
+        metavar='PRIORITY',
+        help="우선순위 (예: h, m, l 또는 높음, 중간, 낮음. 기본값: m)"
+    )
 
     # 'list' 명령어
     list_parser = subparsers.add_parser("list", help="할 일 목록을 보여줍니다.")
@@ -371,10 +467,22 @@ def main():
     edit_parser.add_argument("index", type=int, help="수정할 할 일의 번호")
     edit_parser.add_argument("--desc", type=str, help="새로운 할 일 내용", dest="new_description")
     edit_parser.add_argument("--due", type=str, help="새로운 마감 기한 (YYYY-MM-DD)", dest="new_due_date")
-    edit_parser.add_argument("--priority", type=str, choices=['h', 'm', 'l', '높음', '중간', '낮음'], help="새로운 우선순위", dest="new_priority")
+    edit_parser.add_argument(
+        "--priority",
+        type=str,
+        choices=['h', 'm', 'l', '높음', '중간', '낮음'],
+        metavar='PRIORITY',
+        help="새로운 우선순위 (예: h, m, l 또는 높음, 중간, 낮음)"
+        , dest="new_priority"
+    )
 
     # 'clear' 명령어
     subparsers.add_parser("clear", help="완료된 모든 할 일을 삭제합니다.")
+
+    # 'undo' 명령어
+    subparsers.add_parser("undo", help="마지막 작업을 실행 취소합니다.")
+    # 'redo' 명령어
+    subparsers.add_parser("redo", help="마지막 실행 취소를 다시 실행합니다.")
 
     args = parser.parse_args()
 
@@ -395,6 +503,10 @@ def main():
             edit_todo(args.index - 1, args.new_description, args.new_due_date, args.new_priority)
     elif args.command == "clear":
         clear_completed_todos()
+    elif args.command == "undo":
+        pop_undo()
+    elif args.command == "redo":
+        pop_redo()
 
 if __name__ == "__main__":
     main()
