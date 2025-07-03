@@ -3,7 +3,7 @@ import argparse
 import json
 import os
 from datetime import datetime, timedelta
-import argcomplete
+
 
 TODO_FILE = 'todos.json'
 UNDO_FILE = '.todos_undo.json'
@@ -445,7 +445,9 @@ def main():
    ██║   ╚██████╔╝╚██████╔╝██████╔╝ 
    ╚═╝    ╚═════╝  ╚═════╝ ╚═════╝  
 """
-    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자\n\n사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n  undo      마지막 작업을 실행 취소합니다.\n  redo      마지막 실행 취소를 다시 실행합니다.\n\n각 명령어의 상세 도움말: python3 todo.py <명령어> -h"
+    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자 (버전: 0.1.7)
+
+사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n  undo      마지막 작업을 실행 취소합니다.\n  redo      마지막 실행 취소를 다시 실행합니다.\n\n각 명령어의 상세 도움말: python3 todo.py <명령어> -h"
 
     parser = argparse.ArgumentParser(
         description=description_text,
@@ -505,7 +507,7 @@ def main():
     # 'redo' 명령어
     subparsers.add_parser("redo", aliases=['r'], help="마지막 실행 취소를 다시 실행합니다. (약어: r)")
 
-    argcomplete.autocomplete(parser)
+    
     args = parser.parse_args()
 
     import sys
