@@ -2,7 +2,7 @@
 import argparse
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 TODO_FILE = 'todos.json'
 
@@ -34,6 +34,28 @@ def save_todos(todos):
     with open(TODO_FILE, 'w', encoding='utf-8') as f:
         json.dump(todos, f, indent=4, ensure_ascii=False)
 
+def _parse_due_date(date_str):
+    if date_str is None: # 마감 기한이 없는 경우
+        return None
+
+    # "YYYY-MM-DD" 형식 파싱 시도
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return date_str
+    except ValueError:
+        pass
+
+    # 숫자 (X일 뒤) 형식 파싱 시도
+    try:
+        days = int(date_str)
+        future_date = datetime.now() + timedelta(days=days)
+        return future_date.strftime('%Y-%m-%d')
+    except ValueError:
+        pass
+
+    print("경고: 유효하지 않은 날짜 형식입니다. YYYY-MM-DD 또는 숫자(X일 뒤) 형식으로 입력해주세요.")
+    return None
+
 def _get_sorted_todos(todos_list, sort_by='priority'):
     # 각 할 일에 원래 인덱스 저장 (복사본에만 적용)
     temp_todos = [dict(item) for item in todos_list] # 원본 리스트를 변경하지 않기 위해 복사
@@ -59,12 +81,10 @@ def add_todo(description, due_date=None, priority='중간'):
         "completed": False,
         "priority": priority
     }
-    if due_date:
-        try:
-            datetime.strptime(due_date, '%Y-%m-%d')
-            todo_item["due_date"] = due_date
-        except ValueError:
-            print("경고: 유효하지 않은 날짜 형식입니다. YYYY-MM-DD 형식으로 입력해주세요.")
+    
+    parsed_due_date = _parse_due_date(due_date)
+    if parsed_due_date:
+        todo_item["due_date"] = parsed_due_date
 
     todos.append(todo_item)
     save_todos(todos)
@@ -82,12 +102,10 @@ def edit_todo(display_index, new_description=None, new_due_date=None, new_priori
             todos[original_index]['description'] = new_description
             print(f"할 일 {display_index + 1}의 내용이 수정되었습니다.")
         if new_due_date:
-            try:
-                datetime.strptime(new_due_date, '%Y-%m-%d')
-                todos[original_index]['due_date'] = new_due_date
+            parsed_new_due_date = _parse_due_date(new_due_date)
+            if parsed_new_due_date:
+                todos[original_index]['due_date'] = parsed_new_due_date
                 print(f"할 일 {display_index + 1}의 마감 기한이 수정되었습니다.")
-            except ValueError:
-                print("경고: 유효하지 않은 날짜 형식입니다. YYYY-MM-DD 형식으로 입력해주세요.")
         if new_priority:
             if new_priority in ['높음', '중간', '낮음']:
                 todos[original_index]['priority'] = new_priority
@@ -128,10 +146,70 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
 """
     print(f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}")
 
+    # 통계 계산
+    all_todos = load_todos()
+    total_todos = len(all_todos)
+    uncompleted_todos = sum(1 for todo in all_todos if not todo.get("completed", False))
+    today_due_todos = 0
+    today = datetime.now().date()
+    for todo in all_todos:
+        if not todo.get("completed", False) and "due_date" in todo:
+            try:
+                due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d').date()
+                if due_date_obj == today:
+                    today_due_todos += 1
+            except ValueError:
+                pass # 잘못된 날짜 형식은 무시
+
+    print(f"{Colors.GRAY}  전체: {total_todos} | 미완료: {uncompleted_todos} | 오늘 마감: {today_due_todos}{Colors.ENDC}\n")
+
     display_counter = 0
-    last_priority = None
+    
+    # 마감 기한 지난 할 일 분리
+    overdue_todos = []
+    regular_todos = []
+    today = datetime.now().date()
 
     for todo in sorted_todos:
+        if "due_date" in todo and not todo["completed"]:
+            try:
+                due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d').date()
+                if due_date_obj < today:
+                    overdue_todos.append(todo)
+                else:
+                    regular_todos.append(todo)
+            except ValueError:
+                regular_todos.append(todo) # 잘못된 날짜 형식은 일반 할 일로 처리
+        else:
+            regular_todos.append(todo)
+
+    # 마감 기한 지난 할 일 출력
+    if overdue_todos:
+        header_text = f" 마감 기한 지남 "
+        header_text_len = len(header_text)
+        line_width = 40
+        total_dashes = line_width - header_text_len
+        left_dashes = total_dashes // 2
+        right_dashes = total_dashes - left_dashes
+        
+        combined_header = (
+            f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * left_dashes +
+            f"{Colors.BOLD}{Colors.RED}{header_text}{Colors.ENDC}" +
+            f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * right_dashes
+        )
+        print(combined_header)
+        for todo in overdue_todos:
+            display_counter += 1
+            status_icon = f"{Colors.RED}✗{Colors.ENDC}"
+            status_text = f"{Colors.RED}마감 지남{Colors.ENDC}"
+            description = f"{Colors.BOLD}{Colors.RED}{todo['description']}{Colors.ENDC}"
+            due_date_info = f" {Colors.RED}(마감: {todo['due_date']}){Colors.ENDC}"
+            print(f"{display_counter}. {status_icon} [{status_text}] {description}{due_date_info}")
+        print()
+
+    # 일반 할 일 출력
+    last_priority = None
+    for todo in regular_todos:
         current_priority = todo.get('priority', '중간')
 
         # 우선순위별 구분선 및 헤더
@@ -179,7 +257,10 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
         if "due_date" in todo:
             try:
                 due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d')
-                if due_date_obj < datetime.now():
+                today = datetime.now().date()
+                if due_date_obj.date() == today:
+                    due_date_info = f" {Colors.YELLOW}(오늘 마감: {todo['due_date']}){Colors.ENDC}"
+                elif due_date_obj < datetime.now():
                     due_date_info = f" {Colors.RED}(마감 지남: {todo['due_date']}){Colors.ENDC}"
                 else:
                     due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
@@ -236,22 +317,18 @@ def clear_completed_todos():
         print("삭제할 완료된 할 일이 없습니다.")
 
 def main():
-    examples = """
-사용 예시:
-  python3 todo.py add "새로운 할 일" --due 2025-07-10 --priority 높음
-  python3 todo.py list
-  python3 todo.py list --status completed
-  python3 todo.py edit 1 --desc "수정된 할 일 내용" --priority 낮음
-  python3 todo.py complete 1
-  python3 todo.py search "키워드"
-  python3 todo.py clear
-
-각 명령어의 상세 도움말:
-  python3 todo.py <명령어> -h
+    todo_ascii_art = """
+████████╗ ██████╗  ██████╗ ██████╗ 
+╚══██╔══╝██╔═══██╗██╔═══██╗██╔═══██╗
+   ██║   ██║   ██║██║   ██║██║   ██║
+   ██║   ██║   ██║██║   ██║██║   ██║
+   ██║   ╚██████╔╝╚██████╔╝██████╔╝ 
+   ╚═╝    ╚═════╝  ╚═════╝ ╚═════╝  
 """
+    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자\n\n사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n\n각 명령어의 상세 도움말: python3 todo.py <명령어> -h"
+
     parser = argparse.ArgumentParser(
-        description="CLI 기반 할 일 목록 관리자",
-        epilog=examples,
+        description=description_text,
         formatter_class=argparse.RawTextHelpFormatter
     )
     subparsers = parser.add_subparsers(dest="command", help="사용 가능한 명령어", required=True)
