@@ -1,0 +1,136 @@
+import os
+import json
+from datetime import datetime
+from utils import _parse_due_date, _parse_priority
+from undo import push_undo
+
+TODO_FILE = 'todos.json'
+
+
+def load_todos():
+    if not os.path.exists(TODO_FILE):
+        return []
+    try:
+        with open(TODO_FILE, 'r', encoding='utf-8') as f:
+            content = f.read()
+            if not content:
+                return []
+            return json.loads(content)
+    except json.JSONDecodeError:
+        return []
+
+def save_todos(todos):
+    with open(TODO_FILE, 'w', encoding='utf-8') as f:
+        json.dump(todos, f, indent=4, ensure_ascii=False)
+
+def _get_sorted_todos(todos_list, sort_by='priority'):
+    temp_todos = [dict(item) for item in todos_list]
+    for i, todo in enumerate(temp_todos):
+        todo['original_index'] = i
+    if sort_by == 'priority':
+        priority_map = {'높음': 0, '중간': 1, '낮음': 2}
+        today = datetime.now().date()
+        def sort_key(x):
+            overdue = 0
+            if 'due_date' in x and not x.get('completed', False):
+                try:
+                    due_date_obj = datetime.strptime(x['due_date'], '%Y-%m-%d').date()
+                    if due_date_obj < today:
+                        overdue = -1
+                except ValueError:
+                    pass
+            overdue_sort = 0 if overdue == 0 else -1
+            return (overdue_sort, priority_map.get(x.get('priority', '중간'), 1), x['original_index'])
+        temp_todos.sort(key=sort_key)
+    elif sort_by == 'due-date':
+        temp_todos.sort(key=lambda x: (x.get('due_date') is None, x.get('due_date', '9999-99-99'), x['original_index']))
+    elif sort_by == 'description':
+        temp_todos.sort(key=lambda x: (x['description'], x['original_index']))
+    elif sort_by == 'status':
+        temp_todos.sort(key=lambda x: (x['completed'], x['original_index']))
+    return temp_todos
+
+def add_todo(description, due_date=None, priority='중간'):
+    push_undo()
+    todos = load_todos()
+    todo_item = {
+        "description": description,
+        "completed": False,
+        "priority": _parse_priority(priority)
+    }
+    parsed_due_date = _parse_due_date(due_date)
+    if parsed_due_date:
+        todo_item["due_date"] = parsed_due_date
+    todos.append(todo_item)
+    save_todos(todos)
+    print(f"할 일 추가: '{todo_item['description']}' (우선순위: {todo_item['priority']})")
+    # list_todos()는 display에서 호출
+
+def edit_todo(display_index, new_description=None, new_due_date=None, new_priority=None):
+    push_undo()
+    todos = load_todos()
+    sorted_todos = _get_sorted_todos(todos)
+    if 0 <= display_index < len(sorted_todos):
+        target_todo = sorted_todos[display_index]
+        original_index = target_todo['original_index']
+        if new_description:
+            todos[original_index]['description'] = new_description
+            print(f"할 일 {display_index + 1}의 내용이 수정되었습니다.")
+        if new_due_date:
+            parsed_new_due_date = _parse_due_date(new_due_date)
+            if parsed_new_due_date:
+                todos[original_index]['due_date'] = parsed_new_due_date
+                print(f"할 일 {display_index + 1}의 마감 기한이 수정되었습니다.")
+        if new_priority:
+            parsed_new_priority = _parse_priority(new_priority)
+            if parsed_new_priority:
+                todos[original_index]['priority'] = parsed_new_priority
+                print(f"할 일 {display_index + 1}의 우선순위가 수정되었습니다.")
+        save_todos(todos)
+    else:
+        print("유효하지 않은 할 일 번호입니다.")
+    # list_todos()는 display에서 호출
+
+def complete_todo(display_index):
+    push_undo()
+    todos = load_todos()
+    sorted_todos = _get_sorted_todos(todos)
+    if 0 <= display_index < len(sorted_todos):
+        target_todo = sorted_todos[display_index]
+        original_index = target_todo['original_index']
+        if not todos[original_index]["completed"]:
+            todos[original_index]["completed"] = True
+            save_todos(todos)
+            print(f"할 일 '{todos[original_index]['description']}'을(를) 완료했습니다.")
+        else:
+            print(f"할 일 '{todos[original_index]['description']}'은(는) 이미 완료되었습니다.")
+    else:
+        print("유효하지 않은 할 일 번호입니다.")
+    # list_todos()는 display에서 호출
+
+def delete_todo(display_index):
+    push_undo()
+    todos = load_todos()
+    sorted_todos = _get_sorted_todos(todos)
+    if 0 <= display_index < len(sorted_todos):
+        target_todo = sorted_todos[display_index]
+        original_index = target_todo['original_index']
+        deleted_todo = todos.pop(original_index)
+        save_todos(todos)
+        print(f"할 일 '{deleted_todo['description']}'을(를) 삭제했습니다.")
+    else:
+        print("유효하지 않은 할 일 번호입니다.")
+    # list_todos()는 display에서 호출
+
+def clear_completed_todos():
+    push_undo()
+    todos = load_todos()
+    initial_count = len(todos)
+    todos = [todo for todo in todos if not todo['completed']]
+    cleared_count = initial_count - len(todos)
+    if cleared_count > 0:
+        save_todos(todos)
+        print(f"완료된 할 일 {cleared_count}개를 삭제했습니다.")
+    else:
+        print("삭제할 완료된 할 일이 없습니다.")
+    # list_todos()는 display에서 호출 
