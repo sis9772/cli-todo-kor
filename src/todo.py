@@ -3,7 +3,7 @@ import argparse
 import json
 import os
 from datetime import datetime, timedelta
-
+import sys # sys 모듈 추가
 
 TODO_FILE = 'todos.json'
 UNDO_FILE = '.todos_undo.json'
@@ -447,6 +447,26 @@ def main():
 """
     description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자 (버전: 0.1.9) 사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n  undo      마지막 작업을 실행 취소합니다.\n  redo      마지막 실행 취소를 다시 실행합니다.\n\n각 명령어의 상세 도움말: python3 todo.py <명령어> -h"
 
+    # 약어 매핑
+    alias_map = {
+        "a": "add",
+        "ls": "list",
+        "l": "list",
+        "c": "complete",
+        "comp": "complete",
+        "d": "delete",
+        "del": "delete",
+        "e": "edit",
+        "s": "search",
+        "clr": "clear",
+        "u": "undo",
+        "r": "redo",
+    }
+
+    # sys.argv를 직접 파싱하여 약어 처리
+    if len(sys.argv) > 1 and sys.argv[1] in alias_map:
+        sys.argv[1] = alias_map[sys.argv[1]]
+
     parser = argparse.ArgumentParser(
         description=description_text,
         formatter_class=argparse.RawTextHelpFormatter
@@ -454,7 +474,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help=argparse.SUPPRESS)
 
     # 'add' 명령어
-    add_parser = subparsers.add_parser("add", aliases=['a'], help="새로운 할 일을 추가합니다. (약어: a)")
+    add_parser = subparsers.add_parser("add", help="새로운 할 일을 추가합니다. (약어: a)")
     add_parser.add_argument("description", type=str, help="추가할 할 일 내용")
     add_parser.add_argument("--due", type=str, help="마감 기한 (YYYY-MM-DD 형식)", dest="due_date")
     add_parser.add_argument(
@@ -467,24 +487,24 @@ def main():
     )
 
     # 'list' 명령어
-    list_parser = subparsers.add_parser("list", aliases=['ls', 'l'], help="할 일 목록을 보여줍니다. (약어: ls, l)")
+    list_parser = subparsers.add_parser("list", help="할 일 목록을 보여줍니다. (약어: ls, l)")
     list_parser.add_argument("--status", type=str, choices=['pending', 'completed'], help="상태별로 필터링 (pending, completed)")
     list_parser.add_argument("--sort-by", type=str, choices=['priority', 'due-date', 'description', 'status'], default='priority', help="정렬 기준. 'priority'는 그룹화하여 표시(기본값), 그 외는 목록 정렬.")
 
     # 'search' 명령어
-    search_parser = subparsers.add_parser("search", aliases=['s'], help="키워드로 할 일을 검색합니다. (약어: s)")
+    search_parser = subparsers.add_parser("search", help="키워드로 할 일을 검색합니다. (약어: s)")
     search_parser.add_argument("keyword", type=str, help="검색할 키워드")
 
     # 'complete' 명령어
-    complete_parser = subparsers.add_parser("complete", aliases=['c', 'comp'], help="할 일을 완료 상태로 변경합니다. (약어: c, comp)")
+    complete_parser = subparsers.add_parser("complete", help="할 일을 완료 상태로 변경합니다. (약어: c, comp)")
     complete_parser.add_argument("index", type=int, help="완료할 할 일의 번호")
 
     # 'delete' 명령어
-    delete_parser = subparsers.add_parser("delete", aliases=['d', 'del'], help="할 일을 삭제합니다. (약어: d, del)")
+    delete_parser = subparsers.add_parser("delete", help="할 일을 삭제합니다. (약어: d, del)")
     delete_parser.add_argument("indexes", type=int, nargs='+', help="삭제할 할 일의 번호(여러 개 가능)")
 
     # 'edit' 명령어
-    edit_parser = subparsers.add_parser("edit", aliases=['e'], help="할 일을 수정합니다. (약어: e)")
+    edit_parser = subparsers.add_parser("edit", help="할 일을 수정합니다. (약어: e)")
     edit_parser.add_argument("index", type=int, help="수정할 할 일의 번호")
     edit_parser.add_argument("--desc", type=str, help="새로운 할 일 내용", dest="new_description")
     edit_parser.add_argument("--due", type=str, help="새로운 마감 기한 (YYYY-MM-DD)", dest="new_due_date")
@@ -498,12 +518,12 @@ def main():
     )
 
     # 'clear' 명령어
-    subparsers.add_parser("clear", aliases=['clr'], help="완료된 모든 할 일을 삭제합니다. (약어: clr)")
+    subparsers.add_parser("clear", help="완료된 모든 할 일을 삭제합니다. (약어: clr)")
 
     # 'undo' 명령어
-    subparsers.add_parser("undo", aliases=['u'], help="마지막 작업을 실행 취소합니다. (약어: u)")
+    subparsers.add_parser("undo", help="마지막 작업을 실행 취소합니다. (약어: u)")
     # 'redo' 명령어
-    subparsers.add_parser("redo", aliases=['r'], help="마지막 실행 취소를 다시 실행합니다. (약어: r)")
+    subparsers.add_parser("redo", help="마지막 실행 취소를 다시 실행합니다. (약어: r)")
 
     
     args = parser.parse_args()
