@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 from datetime import datetime, timedelta
+import argcomplete
 
 TODO_FILE = 'todos.json'
 UNDO_FILE = '.todos_undo.json'
@@ -186,10 +187,14 @@ def add_todo(description, due_date=None, priority='중간'):
         "completed": False,
         "priority": _parse_priority(priority) # _parse_priority 사용
     }
-    
-    parsed_due_date = _parse_due_date(due_date)
-    if parsed_due_date:
-        todo_item["due_date"] = parsed_due_date
+    # 날짜 미입력 시 자동으로 내일로 설정
+    if due_date is None:
+        tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+        todo_item["due_date"] = tomorrow
+    else:
+        parsed_due_date = _parse_due_date(due_date)
+        if parsed_due_date:
+            todo_item["due_date"] = parsed_due_date
 
     todos.append(todo_item)
     save_todos(todos)
@@ -390,20 +395,31 @@ def complete_todo(display_index):
         print("유효하지 않은 할 일 번호입니다.")
     list_todos()
 
-def delete_todo(display_index):
+def delete_todo(display_indexes):
     push_undo()
     todos = load_todos()
     sorted_todos = _get_sorted_todos(todos) # 기본 정렬 (우선순위)
-
-    if 0 <= display_index < len(sorted_todos):
-        target_todo = sorted_todos[display_index]
-        original_index = target_todo['original_index']
-
-        deleted_todo = todos.pop(original_index)
-        save_todos(todos)
-        print(f"할 일 '{deleted_todo['description']}'을(를) 삭제했습니다.")
-    else:
-        print("유효하지 않은 할 일 번호입니다.")
+    # 중복 제거 및 내림차순 정렬(인덱스가 밀리지 않게)
+    unique_indexes = sorted(set(display_indexes), reverse=True)
+    deleted = []
+    invalid = []
+    for display_index in unique_indexes:
+        if 0 <= display_index < len(sorted_todos):
+            target_todo = sorted_todos[display_index]
+            original_index = target_todo['original_index']
+            deleted.append(todos[original_index]['description'])
+            todos.pop(original_index)
+            # 삭제 후 인덱스 보정
+            for t in sorted_todos:
+                if t['original_index'] > original_index:
+                    t['original_index'] -= 1
+        else:
+            invalid.append(display_index+1)
+    save_todos(todos)
+    if deleted:
+        print(f"할 일 삭제: {', '.join([f'\'{d}\'' for d in deleted])}")
+    if invalid:
+        print(f"유효하지 않은 할 일 번호: {', '.join(map(str, invalid))}")
     list_todos()
 
 def clear_completed_todos():
@@ -465,7 +481,7 @@ def main():
 
     # 'delete' 명령어
     delete_parser = subparsers.add_parser("delete", help="할 일을 삭제합니다.")
-    delete_parser.add_argument("index", type=int, help="삭제할 할 일의 번호")
+    delete_parser.add_argument("indexes", type=int, nargs='+', help="삭제할 할 일의 번호(여러 개 가능)")
 
     # 'edit' 명령어
     edit_parser = subparsers.add_parser("edit", help="할 일을 수정합니다.")
@@ -489,9 +505,17 @@ def main():
     # 'redo' 명령어
     subparsers.add_parser("redo", help="마지막 실행 취소를 다시 실행합니다.")
 
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
 
+    import sys
+    # 명령어 없이 문자열만 입력한 경우 자동 add 처리
     if args.command is None:
+        # sys.argv에서 스크립트명 제외 후 인자만 추출
+        extra_args = sys.argv[1:]
+        if len(extra_args) == 1:
+            add_todo(extra_args[0])
+            return
         parser.print_help()
         return
 
@@ -504,7 +528,8 @@ def main():
     elif args.command == "complete":
         complete_todo(args.index - 1)
     elif args.command == "delete":
-        delete_todo(args.index - 1)
+        # 여러 개 입력받으므로 각각 1 빼기
+        delete_todo([i-1 for i in args.indexes])
     elif args.command == "edit":
         if not any([args.new_description, args.new_due_date, args.new_priority]):
             print("수정할 내용을 하나 이상 입력해야 합니다. --desc, --due, --priority 옵션을 확인하세요.")
