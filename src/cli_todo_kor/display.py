@@ -30,8 +30,8 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
 ╚══██╔══╝██╔═══██╗██╔═══██╗██╔═══██╗
    ██║   ██║   ██║██║   ██║██║   ██║
    ██║   ██║   ██║██║   ██║██║   ██║
-   ██║   ╚██████╔╝██████╔╝ ╚██████╔╝
-   ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝ 
+   ██║   ╚██████╔╝██████╔╝ ╚██████╔╝ 
+   ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝  
 """
     print(f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}")
     all_todos = load_todos()

@@ -1,4 +1,9 @@
+import json
+import os
 from datetime import datetime, timedelta
+
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data')
+HISTORY_FILE = os.path.join(DATA_DIR, 'command_history.json')
 
 def _parse_due_date(date_str):
     if date_str is None:
@@ -26,4 +31,43 @@ def _parse_priority(priority_str):
         '중간': '중간',
         '낮음': '낮음'
     }
-    return priority_map.get(priority_str.lower(), '중간') 
+    return priority_map.get(priority_str.lower(), '중간')
+
+def log_command(command, args):
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+
+    history = []
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+            try:
+                history = json.load(f)
+            except json.JSONDecodeError:
+                history = []
+
+    # args 객체를 딕셔너리로 변환 (직렬화 가능한 형태로)
+    arg_dict = vars(args) if args else {}
+    # command와 args에서 민감한 정보나 불필요한 정보 제거 (예: command 자체는 필요하지만, 내부 객체는 불필요)
+    # 여기서는 command와 arg_dict를 그대로 저장하지만, 필요에 따라 필터링 로직 추가 가능
+
+    history.append({
+        'timestamp': datetime.now().isoformat(),
+        'command': command,
+        'args': arg_dict
+    })
+
+    # 최신 100개 명령어만 유지
+    history = history[-100:]
+
+    with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+        json.dump(history, f, ensure_ascii=False, indent=4)
+
+def get_command_history():
+    if not os.path.exists(HISTORY_FILE):
+        return []
+    with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+        try:
+            history = json.load(f)
+        except json.JSONDecodeError:
+            return []
+    return history 

@@ -31,15 +31,20 @@ def _get_sorted_todos(todos_list, sort_by='priority'):
         today = datetime.now().date()
         def sort_key(x):
             overdue = 0
+            due_date_val = None
             if 'due_date' in x and not x.get('completed', False):
                 try:
                     due_date_obj = datetime.strptime(x['due_date'], '%Y-%m-%d').date()
+                    due_date_val = due_date_obj
                     if due_date_obj < today:
                         overdue = -1
                 except ValueError:
                     pass
-            overdue_sort = 0 if overdue == 0 else -1
-            return (overdue_sort, priority_map.get(x.get('priority', '중간'), 1), x['original_index'])
+            # 마감 기한이 없는 경우 가장 뒤로, 있는 경우 가까운 순서대로
+            # overdue_sort는 마감 기한이 지난 경우를 최상단으로 정렬하기 위함
+            # due_date_val is None을 통해 마감 기한 없는 항목을 뒤로 보냄
+            # x['original_index']는 최종적으로 생성 순서 유지
+            return (overdue, priority_map.get(x.get('priority', '중간'), 1), due_date_val is None, due_date_val, x['original_index'])
         temp_todos.sort(key=sort_key)
     elif sort_by == 'due-date':
         temp_todos.sort(key=lambda x: (x.get('due_date') is None, x.get('due_date', '9999-99-99'), x['original_index']))

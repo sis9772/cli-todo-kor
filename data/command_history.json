@@ -1,0 +1,71 @@
+[
+    {
+        "timestamp": "2025-07-05T02:33:38.715112",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "날짜 오른쪽 끝에 위치하게",
+            "due_date": null,
+            "priority": "m"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:33:52.704896",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "마감 기한 지난거 삭제하는 명령 생성",
+            "due_date": null,
+            "priority": "m"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:34:20.837928",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "정보처리기사 원서 접수하기",
+            "due_date": "2025-07-20",
+            "priority": "높음"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:34:36.220170",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "토스 개발자 컨퍼런스 발표",
+            "due_date": "12",
+            "priority": "l"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:35:12.081199",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "cli 기반 todo 앱 개발하기",
+            "due_date": "25",
+            "priority": "m"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:35:54.408881",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "예비군 일정",
+            "due_date": "2025-07-10",
+            "priority": "h"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:37:27.712512",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    }
+]

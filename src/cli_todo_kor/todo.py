@@ -8,7 +8,7 @@ from .core import (
 )
 from .display import list_todos
 from .undo import pop_undo, pop_redo
-from .utils import _parse_due_date
+from .utils import _parse_due_date, log_command, get_command_history
 
 class Colors:
     RED = '\x1b[91m'
@@ -27,10 +27,10 @@ def main():
 ╚══██╔══╝██╔═══██╗██╔═══██╗██╔═══██╗
    ██║   ██║   ██║██║   ██║██║   ██║
    ██║   ██║   ██║██║   ██║██║   ██║
-   ██║   ╚██████╔╝██████╔╝ ╚██████╔╝
-   ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝ 
+   ██║   ╚██████╔╝██████╔╝ ╚██████╔╝ 
+   ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝  
 """
-    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자 (버전: 0.1.17) 사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n  undo      마지막 작업을 실행 취소합니다.\n  redo      마지막 실행 취소를 다시 실행합니다.\n\n각 명령어의 상세 도움말: todo <명령어> -h"
+    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자 (버전: 0.1.17) 사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n  undo      마지막 작업을 실행 취소합니다.\n  redo      마지막 실행 취소를 다시 실행합니다.\n  log       실행된 명령어 기록을 보여줍니다.\n\n각 명령어의 상세 도움말: todo <명령어> -h"
 
     # 약어 매핑
     alias_map = {
@@ -49,7 +49,7 @@ def main():
     }
 
     # 유효한 명령어 목록 (약어 포함)
-    valid_commands = list(alias_map.keys()) + list(alias_map.values())
+    valid_commands = list(alias_map.keys()) + list(alias_map.values()) + ["log"]
     valid_commands = list(set(valid_commands)) # 중복 제거
 
     parser = argparse.ArgumentParser(
@@ -110,6 +110,10 @@ def main():
     # 'redo' 명령어
     subparsers.add_parser("redo", help="마지막 실행 취소를 다시 실행합니다. (약어: r)")
 
+    # 'log' 명령어
+    log_parser = subparsers.add_parser("log", help="실행된 명령어 기록을 보여줍니다.")
+    log_parser.add_argument("--last", type=int, help="최근 N개의 명령어만 보여줍니다.")
+
     # sys.argv 조작 (argparse 파싱 전에)
     if len(sys.argv) == 1: # todo만 입력했을 때
         # 할 일 목록이 비어있으면 도움말 출력, 아니면 'list' 명령어 삽입
@@ -130,6 +134,10 @@ def main():
         sys.argv[1] = alias_map[sys.argv[1]]
 
     args = parser.parse_args()
+
+    # 'log' 명령어는 기록하지 않음
+    if args.command != "log":
+        log_command(args.command, args)
 
     if args.command == "add":
         add_todo(args.description, args.due_date, args.priority)
@@ -158,6 +166,23 @@ def main():
         pop_undo()
     elif args.command == "redo":
         pop_redo()
+    elif args.command == "log":
+        history = get_command_history()
+        if args.last:
+            history = history[-args.last:]
+        if not history:
+            print("명령어 기록이 없습니다.")
+            return
+        print("\n--- 명령어 기록 ---")
+        for entry in history:
+            cmd = entry.get('command', 'N/A')
+            timestamp = entry.get('timestamp', 'N/A')
+            arg_dict = entry.get('args', {})
+            # 'command' 키는 이미 cmd 변수에 있으므로 제외하고 출력
+            display_args = {k: v for k, v in arg_dict.items() if k != 'command' and v is not None}
+            arg_str = ' '.join([f"--{k} {v}" if v else f"--{k}" for k, v in display_args.items()])
+            print(f"[{timestamp}] todo {cmd} {arg_str}")
+        print("-------------------\n")
 
 if __name__ == "__main__":
     main() 
