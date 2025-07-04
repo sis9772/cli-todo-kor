@@ -2,13 +2,13 @@
 import argparse
 import sys
 from datetime import timedelta
-from core import (
+from .core import (
     add_todo, edit_todo, complete_todo, delete_todo, 
     clear_completed_todos, load_todos
 )
-from display import list_todos
-from undo import pop_undo, pop_redo
-from utils import _parse_due_date
+from .display import list_todos
+from .undo import pop_undo, pop_redo
+from .utils import _parse_due_date
 
 class Colors:
     RED = '\x1b[91m'
@@ -30,7 +30,7 @@ def main():
    ██║   ╚██████╔╝██████╔╝ ╚██████╔╝
    ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝ 
 """
-    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자 (버전: 0.1.13) 사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n  undo      마지막 작업을 실행 취소합니다.\n  redo      마지막 실행 취소를 다시 실행합니다.\n\n각 명령어의 상세 도움말: todo <명령어> -h"
+    description_text = f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}\n\nCLI 기반 할 일 목록 관리자 (버전: 0.1.16) 사용 가능한 명령어:\n  add       새로운 할 일을 추가합니다.\n  list      할 일 목록을 보여줍니다.\n  complete  할 일을 완료 상태로 변경합니다.\n  delete    할 일을 삭제합니다.\n  edit      할 일을 수정합니다.\n  search    키워드로 할 일을 검색합니다.\n  clear     완료된 모든 할 일을 삭제합니다.\n  undo      마지막 작업을 실행 취소합니다.\n  redo      마지막 실행 취소를 다시 실행합니다.\n\n각 명령어의 상세 도움말: todo <명령어> -h"
 
     # 약어 매핑
     alias_map = {
@@ -48,9 +48,9 @@ def main():
         "r": "redo",
     }
 
-    # sys.argv를 직접 파싱하여 약어 처리
-    if len(sys.argv) > 1 and sys.argv[1] in alias_map:
-        sys.argv[1] = alias_map[sys.argv[1]]
+    # 유효한 명령어 목록 (약어 포함)
+    valid_commands = list(alias_map.keys()) + list(alias_map.values())
+    valid_commands = list(set(valid_commands)) # 중복 제거
 
     parser = argparse.ArgumentParser(
         description=description_text,
@@ -110,19 +110,26 @@ def main():
     # 'redo' 명령어
     subparsers.add_parser("redo", help="마지막 실행 취소를 다시 실행합니다. (약어: r)")
 
-    
-    args = parser.parse_args()
+    # sys.argv 조작 (argparse 파싱 전에)
+    if len(sys.argv) == 1: # todo만 입력했을 때
+        # 할 일 목록이 비어있으면 도움말 출력, 아니면 'list' 명령어 삽입
+        current_todos = load_todos()
+        if not current_todos:
+            parser.print_help()
+            return # 도움말 출력 후 종료
+        else:
+            sys.argv.insert(1, "list")
+    elif len(sys.argv) > 1:
+        first_arg = sys.argv[1]
+        # 첫 번째 인자가 유효한 명령어도 아니고, 옵션도 아니라면 'add' 명령어를 삽입
+        if first_arg not in valid_commands and not first_arg.startswith('-'):
+            sys.argv.insert(1, "add")
 
-    # 명령어 없이 문자열만 입력한 경우 자동 add 처리
-    if args.command is None:
-        # sys.argv에서 스크립트명 제외 후 인자만 추출
-        extra_args = sys.argv[1:]
-        if len(extra_args) == 1:
-            add_todo(extra_args[0])
-            list_todos()
-            return
-        parser.print_help()
-        return
+    # 약어 매핑 (기존 로직 유지)
+    if len(sys.argv) > 1 and sys.argv[1] in alias_map:
+        sys.argv[1] = alias_map[sys.argv[1]]
+
+    args = parser.parse_args()
 
     if args.command == "add":
         add_todo(args.description, args.due_date, args.priority)

@@ -1,2 +1,0 @@
-[console_scripts]
-todo = cli_todo_kor.todo:main

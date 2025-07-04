@@ -1,9 +1,9 @@
 import os
 import json
 from datetime import datetime
-from utils import _parse_due_date, _parse_priority
+from .utils import _parse_due_date, _parse_priority
 
-TODO_FILE = 'todos.json'
+TODO_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', 'todos.json')
 
 
 def load_todos():
@@ -50,7 +50,7 @@ def _get_sorted_todos(todos_list, sort_by='priority'):
     return temp_todos
 
 def add_todo(description, due_date=None, priority='중간'):
-    from undo import push_undo
+    from .undo import push_undo
     push_undo()
     todos = load_todos()
     todo_item = {
@@ -66,7 +66,7 @@ def add_todo(description, due_date=None, priority='중간'):
     print(f"할 일 추가: '{todo_item['description']}' (우선순위: {todo_item['priority']})")
 
 def edit_todo(display_index, new_description=None, new_due_date=None, new_priority=None):
-    from undo import push_undo
+    from .undo import push_undo
     push_undo()
     todos = load_todos()
     sorted_todos = _get_sorted_todos(todos)
@@ -91,7 +91,7 @@ def edit_todo(display_index, new_description=None, new_due_date=None, new_priori
         print("유효하지 않은 할 일 번호입니다.")
 
 def complete_todo(display_index):
-    from undo import push_undo
+    from .undo import push_undo
     push_undo()
     todos = load_todos()
     sorted_todos = _get_sorted_todos(todos)
@@ -108,7 +108,7 @@ def complete_todo(display_index):
         print("유효하지 않은 할 일 번호입니다.")
 
 def delete_todo(display_indexes):
-    from undo import push_undo
+    from .undo import push_undo
     push_undo()
     todos = load_todos()
     sorted_todos = _get_sorted_todos(todos)
@@ -133,7 +133,7 @@ def delete_todo(display_indexes):
         print(f"유효하지 않은 할 일 번호: {', '.join(map(str, invalid))}")
 
 def clear_completed_todos():
-    from undo import push_undo
+    from .undo import push_undo
     push_undo()
     todos = load_todos()
     initial_count = len(todos)

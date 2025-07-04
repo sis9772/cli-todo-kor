@@ -1,5 +1,5 @@
 from datetime import datetime
-from core import load_todos, _get_sorted_todos
+from .core import load_todos, _get_sorted_todos
 
 class Colors:
     RED = '\x1b[91m'
@@ -26,12 +26,12 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
         print("표시할 할 일이 없습니다.")
         return
     todo_ascii_art = """
-████████╗ ██████╗  ██████╗ ██████╗ 
+████████╗ ██████╗ ██████╗   ██████╗ 
 ╚══██╔══╝██╔═══██╗██╔═══██╗██╔═══██╗
    ██║   ██║   ██║██║   ██║██║   ██║
    ██║   ██║   ██║██║   ██║██║   ██║
-   ██║   ╚██████╔╝╚██████╔╝██████╔╝ 
-   ╚═╝    ╚═════╝  ╚═════╝ ╚═════╝  
+   ██║   ╚██████╔╝██████╔╝ ╚██████╔╝
+   ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝ 
 """
     print(f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}")
     all_todos = load_todos()

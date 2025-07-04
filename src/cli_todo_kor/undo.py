@@ -2,10 +2,10 @@ import os
 import json
 
 UNDO_FILE = '.todos_undo.json'
-REDO_FILE = '.todos_redo.json'
+REDO_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', '.todos_redo.json')
 
 def push_undo():
-    from core import load_todos
+    from .core import load_todos
     todos = load_todos()
     undo_stack = []
     if os.path.exists(UNDO_FILE):
@@ -19,8 +19,8 @@ def push_undo():
         json.dump(undo_stack, f, indent=4, ensure_ascii=False)
 
 def pop_undo():
-    from core import load_todos, save_todos
-    from display import list_todos
+    from .core import load_todos, save_todos
+    from .display import list_todos
     
     if not os.path.exists(UNDO_FILE):
         print('실행 취소할 작업이 없습니다.')
@@ -54,8 +54,8 @@ def pop_undo():
     list_todos()
 
 def pop_redo():
-    from core import load_todos, save_todos
-    from display import list_todos
+    from .core import load_todos, save_todos
+    from .display import list_todos
     
     if not os.path.exists(REDO_FILE):
         print('다시 실행할 작업이 없습니다.')
