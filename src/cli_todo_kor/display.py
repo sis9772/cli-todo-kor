@@ -25,14 +25,14 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
     if not sorted_todos:
         print("표시할 할 일이 없습니다.")
         return
-    todo_ascii_art = """
-████████╗ ██████╗ ██████╗   ██████╗ 
-╚══██╔══╝██╔═══██╗██╔═══██╗██╔═══██╗
-   ██║   ██║   ██║██║   ██║██║   ██║
-   ██║   ██║   ██║██║   ██║██║   ██║
-   ██║   ╚██████╔╝██████╔╝ ╚██████╔╝ 
-   ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝  
-"""
+    todo_ascii_art = f"{Colors.BOLD}{Colors.CYAN}"""
+     ████████╗ ██████╗ ██████╗  ██████╗ 
+     ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
+        ██║   ██║   ██║██║  ██║██║   ██║
+        ██║   ██║   ██║██║  ██║██║   ██║
+        ██║   ╚██████╔╝██████╔╝╚██████╔╝
+        ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+"""{Colors.ENDC}""
     print(f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}")
     all_todos = load_todos()
     total_todos = len(all_todos)
@@ -138,5 +138,5 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
                             due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
                     except ValueError:
                         due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-                print(f"{idx+1}. [{status_text}] {description}{due_date_info}")
+                print(f"{idx+1}. {status_icon} [{status_text}] {description}{due_date_info}")
         print() 
