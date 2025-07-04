@@ -1,5 +1,7 @@
+import re
 from datetime import datetime
 from .core import load_todos, _get_sorted_todos
+
 
 class Colors:
     RED = '\x1b[91m'
@@ -12,7 +14,14 @@ class Colors:
     ENDC = '\x1b[0m'
     BOLD = '\x1b[1m'
 
-def list_todos(status_filter=None, search_term=None, sort_by='priority'):
+ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+def strip_ansi_codes(s):
+    return ansi_escape.sub('', s)
+
+# 고정된 라인 너비 (조정 가능)
+LINE_WIDTH = 75
+
+def list_todos(status_filter=None, search_term=None, sort_by='priority', tag_filter=None):
     todos = load_todos()
     if search_term:
         todos = [t for t in todos if search_term.lower() in t['description'].lower()]
@@ -21,6 +30,15 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
             todos = [t for t in todos if t['completed']]
         elif status_filter == 'pending':
             todos = [t for t in todos if not t['completed']]
+    
+    # 태그 필터링 로직 추가
+    if tag_filter:
+        # tag_filter가 리스트가 아니면 리스트로 변환 (단일 태그 검색 지원)
+        if not isinstance(tag_filter, list):
+            tag_filter = [tag_filter]
+        # 모든 지정된 태그를 포함하는 할 일만 필터링
+        todos = [t for t in todos if all(tag in t.get('tags', []) for tag in tag_filter)]
+
     sorted_todos = _get_sorted_todos(todos, sort_by)
     if not sorted_todos:
         print("표시할 할 일이 없습니다.")
@@ -59,6 +77,13 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
             if prio not in priority_map:
                 priority_map[prio] = []
             priority_map[prio].append((idx, todo))
+    
+    # 태그를 포맷하는 헬퍼 함수
+    def format_tags(tags):
+        if not tags:
+            return ""
+        return " ".join([f"{Colors.MAGENTA}#{tag}{Colors.ENDC}" for tag in tags])
+
     if overdue_todos:
         header_text = f" 마감 기한 지남 "
         header_text_len = len(header_text)
@@ -87,7 +112,9 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
                         due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
                 except ValueError:
                     due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-            print(f"{idx+1}. [{status_text}] {description}{due_date_info}")
+            tags_display = format_tags(todo.get('tags', []))
+
+            print(f"{idx+1}. [{status_text}] {description} {tags_display}{due_date_info}")
         print()
     for i, prio in enumerate(priority_order):
         header_text = f" {prio} 우선순위 "
@@ -128,5 +155,8 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
                             due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
                     except ValueError:
                         due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-                print(f"{idx+1}. [{status_text}] {description}{due_date_info}")
-        print() 
+                tags_display = format_tags(todo.get('tags', []))
+
+                print(f"{idx+1}. [{status_text}] {description} {tags_display}{due_date_info}")
+        print()
+ 

@@ -50,24 +50,33 @@ def _get_sorted_todos(todos_list, sort_by='priority'):
             # overdue_sort는 마감 기한이 지난 경우를 최상단으로 정렬하기 위함
             # due_date_val is None을 통해 마감 기한 없는 항목을 뒤로 보냄
             # x['original_index']는 최종적으로 생성 순서 유지
-            return (overdue, priority_map.get(x.get('priority', '중간'), 1), due_date_val is None, due_date_val, x['original_index'])
+            return (x.get('completed', False), # 미완료(False)가 완료(True)보다 먼저 오도록
+                    overdue,
+                    priority_map.get(x.get('priority', '중간'), 1),
+                    due_date_val is None, # 마감 기한 없는 항목을 뒤로 보냄
+                    due_date_val,
+                    x['original_index'])
         temp_todos.sort(key=sort_key)
     elif sort_by == 'due-date':
-        temp_todos.sort(key=lambda x: (x.get('due_date') is None, x.get('due_date', '9999-99-99'), x['original_index']))
+        # 완료 여부 (미완료 먼저), 마감 기한, 생성 순서
+        temp_todos.sort(key=lambda x: (x.get('completed', False), x.get('due_date') is None, x.get('due_date', '9999-99-99'), x['original_index']))
     elif sort_by == 'description':
-        temp_todos.sort(key=lambda x: (x['description'], x['original_index']))
+        # 완료 여부 (미완료 먼저), 설명, 생성 순서
+        temp_todos.sort(key=lambda x: (x.get('completed', False), x['description'], x['original_index']))
     elif sort_by == 'status':
+        # 완료 여부 (미완료 먼저), 생성 순서
         temp_todos.sort(key=lambda x: (x['completed'], x['original_index']))
     return temp_todos
 
-def add_todo(description, due_date=None, priority='중간'):
+def add_todo(description, due_date=None, priority='중간', tags=None):
     from .undo import push_undo
     push_undo()
     todos = load_todos()
     todo_item = {
         "description": description,
         "completed": False,
-        "priority": _parse_priority(priority)
+        "priority": _parse_priority(priority),
+        "tags": tags if tags is not None else []
     }
     parsed_due_date = _parse_due_date(due_date)
     if parsed_due_date:
@@ -76,7 +85,7 @@ def add_todo(description, due_date=None, priority='중간'):
     save_todos(todos)
     print(f"할 일 추가: '{todo_item['description']}' (우선순위: {todo_item['priority']})")
 
-def edit_todo(display_index, new_description=None, new_due_date=None, new_priority=None):
+def edit_todo(display_index, new_description=None, new_due_date=None, new_priority=None, new_tags=None):
     from .undo import push_undo
     push_undo()
     todos = load_todos()
@@ -97,6 +106,9 @@ def edit_todo(display_index, new_description=None, new_due_date=None, new_priori
             if parsed_new_priority:
                 todos[original_index]['priority'] = parsed_new_priority
                 print(f"할 일 {display_index + 1}의 우선순위가 수정되었습니다.")
+        if new_tags is not None:
+            todos[original_index]['tags'] = new_tags
+            print(f"할 일 {display_index + 1}의 태그가 수정되었습니다.")
         save_todos(todos)
     else:
         print("유효하지 않은 할 일 번호입니다.")

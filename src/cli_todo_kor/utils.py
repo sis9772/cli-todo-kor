@@ -1,8 +1,10 @@
 import json
 import os
 from datetime import datetime, timedelta
+from platformdirs import user_data_dir
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data')
+APP_NAME = "cli-todo-kor"
+DATA_DIR = user_data_dir(appname=APP_NAME)
 HISTORY_FILE = os.path.join(DATA_DIR, 'command_history.json')
 
 def _parse_due_date(date_str):
@@ -70,4 +72,12 @@ def get_command_history():
             history = json.load(f)
         except json.JSONDecodeError:
             return []
-    return history 
+    return history
+
+def clear_command_history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump([], f) # 파일 내용을 비움
+        print("명령어 기록이 삭제되었습니다.")
+    else:
+        print("삭제할 명령어 기록이 없습니다.") 
