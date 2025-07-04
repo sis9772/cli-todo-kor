@@ -82,7 +82,6 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
         )
         print(combined_header)
         for idx, todo in overdue_todos:
-            status_icon = f"{Colors.RED}✗{Colors.ENDC}"
             status_text = f"{Colors.RED}마감 지남{Colors.ENDC}"
             description = f"{Colors.BOLD}{Colors.RED}{todo['description']}{Colors.ENDC}"
             due_date_info = ""
@@ -97,7 +96,7 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
                         due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
                 except ValueError:
                     due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-            print(f"{idx+1}. {status_icon} [{status_text}] {description}{due_date_info}")
+            print(f"{idx+1}. [{status_text}] {description}{due_date_info}")
         print()
     for i, prio in enumerate(priority_order):
         header_text = f" {prio} 우선순위 "
@@ -139,5 +138,5 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
                             due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
                     except ValueError:
                         due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-                print(f"{idx+1}. {status_icon} [{status_text}] {description}{due_date_info}")
+                print(f"{idx+1}. [{status_text}] {description}{due_date_info}")
         print() 
