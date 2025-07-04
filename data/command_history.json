@@ -67,5 +67,539 @@
             "status": null,
             "sort_by": "priority"
         }
+    },
+    {
+        "timestamp": "2025-07-05T02:39:06.713959",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:39:46.691726",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:44:04.842662",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:44:11.367932",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:45:12.166794",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:45:41.006311",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:54:31.838189",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:55:59.897608",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:57:11.812494",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:57:31.855090",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:57:56.468025",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T02:59:15.021911",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:00:13.882591",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:00:41.752166",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:00:45.394890",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:01:08.833898",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:01:41.676587",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:04:09.215335",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:05:32.896095",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:05:34.623044",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:06:26.805039",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:06:35.291709",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:07:53.660895",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:07:56.002505",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:08:02.844227",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:08:35.869782",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:10:07.355721",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "0.2.2 업로드",
+            "due_date": null,
+            "priority": "m"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:11:15.450239",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:27:30.372805",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "예비군 날짜 변경 문의하기",
+            "due_date": null,
+            "priority": "m"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:27:43.896148",
+        "command": "complete",
+        "args": {
+            "command": "complete",
+            "index": 7
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:28:43.121820",
+        "command": "edit",
+        "args": {
+            "command": "edit",
+            "index": 1,
+            "new_description": "학생예비군",
+            "new_due_date": "2025-07-14",
+            "new_priority": null
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:28:51.975874",
+        "command": "edit",
+        "args": {
+            "command": "edit",
+            "index": 1,
+            "new_description": "학생예비군 참여",
+            "new_due_date": "2025-07-14",
+            "new_priority": null
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:29:14.379324",
+        "command": "clear",
+        "args": {
+            "command": "clear"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:29:35.644098",
+        "command": "add",
+        "args": {
+            "command": "add",
+            "description": "학생예비군 날짜 변경 문의",
+            "due_date": null,
+            "priority": "h"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:29:42.043355",
+        "command": "complete",
+        "args": {
+            "command": "complete",
+            "index": 7
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:30:38.367858",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:31:30.505478",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:31:39.009016",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:32:08.982636",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:33:13.334552",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:33:51.561311",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:33:54.853075",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:34:21.983973",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:34:28.476198",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:34:34.898385",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:35:19.222256",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:35:28.652518",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:35:37.708848",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:35:46.353069",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:35:53.787768",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:35:59.655791",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:36:13.940526",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:37:42.766986",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:37:48.511138",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:37:52.444420",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:38:01.032414",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:38:21.535595",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:39:02.660276",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
+    },
+    {
+        "timestamp": "2025-07-05T03:39:52.897942",
+        "command": "list",
+        "args": {
+            "command": "list",
+            "status": null,
+            "sort_by": "priority"
+        }
     }
 ]

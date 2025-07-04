@@ -38,7 +38,7 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
                     today_due_todos += 1
             except ValueError:
                 pass
-    print(f"{Colors.GRAY}  전체: {total_todos} | 미완료: {uncompleted_todos} | 오늘 마감: {today_due_todos}{Colors.ENDC}\n")
+    print(f"   {Colors.BLUE}  전체: {total_todos} | 미완료: {uncompleted_todos} | 오늘 마감: {today_due_todos}{Colors.ENDC}\n")
     today = datetime.now().date()
     priority_order = ['높음', '중간', '낮음']
     priority_map = {'높음': [], '중간': [], '낮음': []}
@@ -107,8 +107,7 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
             print("-")
         else:
             for idx, todo in prio_todos:
-                status_icon = f"{Colors.GREEN}✓{Colors.ENDC}" if todo["completed"] else f"{Colors.RED}✗{Colors.ENDC}"
-                status_text = f"{Colors.GRAY}완료{Colors.ENDC}" if todo["completed"] else f"{Colors.YELLOW}미완료{Colors.ENDC}"
+                status_text = f"{Colors.GREEN}완료{Colors.ENDC}" if todo["completed"] else f"{Colors.RED}미완료{Colors.ENDC}"
                 priority_color = {
                     '높음': Colors.RED,
                     '중간': Colors.CYAN,
@@ -129,5 +128,5 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
                             due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
                     except ValueError:
                         due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-                print(f"{idx+1}. {status_icon} [{status_text}] {description}{due_date_info}")
+                print(f"{idx+1}. [{status_text}] {description}{due_date_info}")
         print() 

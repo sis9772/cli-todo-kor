@@ -1,1 +1,46 @@
-[]
+[
+    {
+        "description": "날짜 오른쪽 끝에 위치하게",
+        "completed": false,
+        "priority": "중간"
+    },
+    {
+        "description": "마감 기한 지난거 삭제하는 명령 생성",
+        "completed": false,
+        "priority": "중간"
+    },
+    {
+        "description": "정보처리기사 원서 접수하기",
+        "completed": false,
+        "priority": "높음",
+        "due_date": "2025-07-20"
+    },
+    {
+        "description": "토스 개발자 컨퍼런스 발표",
+        "completed": false,
+        "priority": "낮음",
+        "due_date": "2025-07-17"
+    },
+    {
+        "description": "cli 기반 todo 앱 개발하기",
+        "completed": false,
+        "priority": "중간",
+        "due_date": "2025-07-30"
+    },
+    {
+        "description": "학생예비군 참여",
+        "completed": false,
+        "priority": "높음",
+        "due_date": "2025-07-14"
+    },
+    {
+        "description": "0.2.2 업로드",
+        "completed": true,
+        "priority": "중간"
+    },
+    {
+        "description": "학생예비군 날짜 변경 문의",
+        "completed": false,
+        "priority": "높음"
+    }
+]

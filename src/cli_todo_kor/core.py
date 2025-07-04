@@ -1,12 +1,18 @@
 import os
 import json
 from datetime import datetime
+from platformdirs import user_data_dir
 from .utils import _parse_due_date, _parse_priority
 
-TODO_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', 'todos.json')
+APP_NAME = "cli-todo-kor"
+TODO_DIR = user_data_dir(appname=APP_NAME)
+TODO_FILE = os.path.join(TODO_DIR, 'todos.json')
 
 
 def load_todos():
+    # 디렉토리가 없으면 생성
+    if not os.path.exists(TODO_DIR):
+        os.makedirs(TODO_DIR)
     if not os.path.exists(TODO_FILE):
         return []
     try:
