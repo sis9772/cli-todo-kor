@@ -25,15 +25,6 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority'):
     if not sorted_todos:
         print("표시할 할 일이 없습니다.")
         return
-    todo_ascii_art = f"{Colors.BOLD}{Colors.CYAN}"""
-     ████████╗ ██████╗ ██████╗  ██████╗ 
-     ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
-        ██║   ██║   ██║██║  ██║██║   ██║
-        ██║   ██║   ██║██║  ██║██║   ██║
-        ██║   ╚██████╔╝██████╔╝╚██████╔╝
-        ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
-"""{Colors.ENDC}""
-    print(f"{Colors.BOLD}{Colors.BLUE}{todo_ascii_art}{Colors.ENDC}")
     all_todos = load_todos()
     total_todos = len(all_todos)
     uncompleted_todos = sum(1 for todo in all_todos if not todo.get("completed", False))
