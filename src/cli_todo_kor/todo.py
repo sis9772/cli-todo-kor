@@ -31,7 +31,7 @@ def main():
        ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝  
 """
     print(f"{Colors.BOLD}{todo_ascii_art}{Colors.ENDC}")
-    description_text = f"""{Colors.BOLD}{Colors.BLUE}CLI 기반 할 일 목록 관리자 (버전: 0.2.5){Colors.ENDC}
+    description_text = f"""{Colors.BOLD}{Colors.BLUE}CLI 기반 할 일 목록 관리자 (버전: 0.2.6){Colors.ENDC}
 
 사용 가능한 명령어:
   add       새로운 할 일을 추가합니다.

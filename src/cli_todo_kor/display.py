@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from .core import load_todos, _get_sorted_todos
+from .utils import load_todos, _get_sorted_todos
 
 
 class Colors:
@@ -20,6 +20,38 @@ def strip_ansi_codes(s):
 
 # 고정된 라인 너비 (조정 가능)
 LINE_WIDTH = 75
+
+def _print_section_header(header_text, color, line_width=40):
+    header_text_len = len(strip_ansi_codes(header_text))
+    total_dashes = line_width - header_text_len
+    left_dashes = total_dashes // 2
+    right_dashes = total_dashes - left_dashes
+    combined_header = (
+        f"{Colors.BOLD}{color}─{Colors.ENDC}" * left_dashes +
+        f"{Colors.BOLD}{color}{header_text}{Colors.ENDC}" +
+        f"{Colors.BOLD}{color}─{Colors.ENDC}" * right_dashes
+    )
+    print(combined_header)
+
+def _print_todo_item(idx, todo, today, format_tags):
+    status_text = f"{Colors.GREEN}완료{Colors.ENDC}" if todo["completed"] else f"{Colors.RED}미완료{Colors.ENDC}"
+    description_color = Colors.GRAY if todo["completed"] else Colors.BOLD
+    description = f"{description_color}{todo['description']}{Colors.ENDC}"
+    due_date_info = ""
+    if "due_date" in todo:
+        try:
+            due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d')
+            if due_date_obj.date() == today:
+                due_date_info = f" {Colors.YELLOW}(오늘 마감: {todo['due_date']}){Colors.ENDC}"
+            elif due_date_obj.date() < today: # datetime.now() 대신 today 사용
+                due_date_info = f" {Colors.RED}(마감 지남: {todo['due_date']}){Colors.ENDC}"
+            else:
+                due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
+        except ValueError:
+            due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
+    tags_display = format_tags(todo.get('tags', []))
+
+    print(f"{idx+1}. [{status_text}] {description} {tags_display}{due_date_info}")
 
 def list_todos(status_filter=None, search_term=None, sort_by='priority', tag_filter=None):
     todos = load_todos()
@@ -57,7 +89,7 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority', tag_fil
             except ValueError:
                 pass
     print(f"   {Colors.BLUE}  전체: {total_todos} | 미완료: {uncompleted_todos} | 오늘 마감: {today_due_todos}{Colors.ENDC}\n")
-    today = datetime.now().date()
+    
     priority_order = ['높음', '중간', '낮음']
     priority_map = {'높음': [], '중간': [], '낮음': []}
     overdue_todos = []
@@ -85,78 +117,17 @@ def list_todos(status_filter=None, search_term=None, sort_by='priority', tag_fil
         return " ".join([f"{Colors.MAGENTA}#{tag}{Colors.ENDC}" for tag in tags])
 
     if overdue_todos:
-        header_text = f" 마감 기한 지남 "
-        header_text_len = len(header_text)
-        line_width = 40
-        total_dashes = line_width - header_text_len
-        left_dashes = total_dashes // 2
-        right_dashes = total_dashes - left_dashes
-        combined_header = (
-            f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * left_dashes +
-            f"{Colors.BOLD}{Colors.RED}{header_text}{Colors.ENDC}" +
-            f"{Colors.BOLD}{Colors.RED}─{Colors.ENDC}" * right_dashes
-        )
-        print(combined_header)
+        _print_section_header(" 마감 기한 지남 ", Colors.RED)
         for idx, todo in overdue_todos:
-            status_text = f"{Colors.RED}마감 지남{Colors.ENDC}"
-            description = f"{Colors.BOLD}{Colors.RED}{todo['description']}{Colors.ENDC}"
-            due_date_info = ""
-            if "due_date" in todo:
-                try:
-                    due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d')
-                    if due_date_obj.date() == today:
-                        due_date_info = f" {Colors.YELLOW}(오늘 마감: {todo['due_date']}){Colors.ENDC}"
-                    elif due_date_obj < datetime.now():
-                        due_date_info = f" {Colors.RED}(마감: {todo['due_date']}){Colors.ENDC}"
-                    else:
-                        due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
-                except ValueError:
-                    due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-            tags_display = format_tags(todo.get('tags', []))
-
-            print(f"{idx+1}. [{status_text}] {description} {tags_display}{due_date_info}")
+            _print_todo_item(idx, todo, today, format_tags)
         print()
+
     for i, prio in enumerate(priority_order):
-        header_text = f" {prio} 우선순위 "
-        header_text_len = len(header_text)
-        line_width = 40
-        total_dashes = line_width - header_text_len
-        left_dashes = total_dashes // 2
-        right_dashes = total_dashes - left_dashes
-        combined_header = (
-            f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * left_dashes +
-            f"{Colors.BOLD}{Colors.YELLOW}{header_text}{Colors.ENDC}" +
-            f"{Colors.BOLD}{Colors.YELLOW}─{Colors.ENDC}" * right_dashes
-        )
-        print(combined_header)
+        _print_section_header(f" {prio} 우선순위 ", Colors.YELLOW)
         prio_todos = priority_map[prio]
         if not prio_todos:
             print("-")
         else:
             for idx, todo in prio_todos:
-                status_text = f"{Colors.GREEN}완료{Colors.ENDC}" if todo["completed"] else f"{Colors.RED}미완료{Colors.ENDC}"
-                priority_color = {
-                    '높음': Colors.RED,
-                    '중간': Colors.CYAN,
-                    '낮음': Colors.GREEN
-                }.get(prio, Colors.CYAN)
-                priority_str = f"{priority_color}{prio}{Colors.ENDC}"
-                description_color = Colors.GRAY if todo["completed"] else Colors.BOLD
-                description = f"{description_color}{todo['description']}{Colors.ENDC}"
-                due_date_info = ""
-                if "due_date" in todo:
-                    try:
-                        due_date_obj = datetime.strptime(todo['due_date'], '%Y-%m-%d')
-                        if due_date_obj.date() == today:
-                            due_date_info = f" {Colors.YELLOW}(오늘 마감: {todo['due_date']}){Colors.ENDC}"
-                        elif due_date_obj < datetime.now():
-                            due_date_info = f" {Colors.RED}(마감 지남: {todo['due_date']}){Colors.ENDC}"
-                        else:
-                            due_date_info = f" {Colors.BLUE}(마감: {todo['due_date']}){Colors.ENDC}"
-                    except ValueError:
-                        due_date_info = f" {Colors.GRAY}(잘못된 날짜: {todo['due_date']}){Colors.ENDC}"
-                tags_display = format_tags(todo.get('tags', []))
-
-                print(f"{idx+1}. [{status_text}] {description} {tags_display}{due_date_info}")
+                _print_todo_item(idx, todo, today, format_tags)
         print()
- 

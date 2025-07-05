@@ -2,71 +2,11 @@ import os
 import json
 from datetime import datetime
 from platformdirs import user_data_dir
-from .utils import _parse_due_date, _parse_priority
-
-APP_NAME = "cli-todo-kor"
-TODO_DIR = user_data_dir(appname=APP_NAME)
-TODO_FILE = os.path.join(TODO_DIR, 'todos.json')
+from .utils import _parse_due_date, _parse_priority, load_todos, save_todos, _get_sorted_todos
 
 
-def load_todos():
-    # 디렉토리가 없으면 생성
-    if not os.path.exists(TODO_DIR):
-        os.makedirs(TODO_DIR)
-    if not os.path.exists(TODO_FILE):
-        return []
-    try:
-        with open(TODO_FILE, 'r', encoding='utf-8') as f:
-            content = f.read()
-            if not content:
-                return []
-            return json.loads(content)
-    except json.JSONDecodeError:
-        return []
 
-def save_todos(todos):
-    with open(TODO_FILE, 'w', encoding='utf-8') as f:
-        json.dump(todos, f, indent=4, ensure_ascii=False)
 
-def _get_sorted_todos(todos_list, sort_by='priority'):
-    temp_todos = [dict(item) for item in todos_list]
-    for i, todo in enumerate(temp_todos):
-        todo['original_index'] = i
-    if sort_by == 'priority':
-        priority_map = {'높음': 0, '중간': 1, '낮음': 2}
-        today = datetime.now().date()
-        def sort_key(x):
-            overdue = 0
-            due_date_val = None
-            if 'due_date' in x and not x.get('completed', False):
-                try:
-                    due_date_obj = datetime.strptime(x['due_date'], '%Y-%m-%d').date()
-                    due_date_val = due_date_obj
-                    if due_date_obj < today:
-                        overdue = -1
-                except ValueError:
-                    pass
-            # 마감 기한이 없는 경우 가장 뒤로, 있는 경우 가까운 순서대로
-            # overdue_sort는 마감 기한이 지난 경우를 최상단으로 정렬하기 위함
-            # due_date_val is None을 통해 마감 기한 없는 항목을 뒤로 보냄
-            # x['original_index']는 최종적으로 생성 순서 유지
-            return (x.get('completed', False), # 미완료(False)가 완료(True)보다 먼저 오도록
-                    overdue,
-                    priority_map.get(x.get('priority', '중간'), 1),
-                    due_date_val is None, # 마감 기한 없는 항목을 뒤로 보냄
-                    due_date_val,
-                    x['original_index'])
-        temp_todos.sort(key=sort_key)
-    elif sort_by == 'due-date':
-        # 완료 여부 (미완료 먼저), 마감 기한, 생성 순서
-        temp_todos.sort(key=lambda x: (x.get('completed', False), x.get('due_date') is None, x.get('due_date', '9999-99-99'), x['original_index']))
-    elif sort_by == 'description':
-        # 완료 여부 (미완료 먼저), 설명, 생성 순서
-        temp_todos.sort(key=lambda x: (x.get('completed', False), x['description'], x['original_index']))
-    elif sort_by == 'status':
-        # 완료 여부 (미완료 먼저), 생성 순서
-        temp_todos.sort(key=lambda x: (x['completed'], x['original_index']))
-    return temp_todos
 
 def add_todo(description, due_date=None, priority='중간', tags=None):
     from .undo import push_undo
