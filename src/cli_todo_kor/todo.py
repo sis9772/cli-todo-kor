@@ -4,22 +4,11 @@ import sys
 from datetime import timedelta
 from .core import (
     add_todo, edit_todo, complete_todo, delete_todo, 
-    clear_completed_todos, load_todos
+    clear_completed_todos
 )
-from .display import list_todos
+from .display import list_todos, Colors
 from .undo import pop_undo, pop_redo
-from .utils import _parse_due_date, log_command, get_command_history, clear_command_history
-
-class Colors:
-    RED = '\x1b[91m'
-    GREEN = '\x1b[92m'
-    YELLOW = '\x1b[93m'
-    BLUE = '\x1b[94m'
-    MAGENTA = '\x1b[95m'
-    CYAN = '\x1b[96m'
-    GRAY = '\x1b[90m'
-    ENDC = '\x1b[0m'
-    BOLD = '\x1b[1m'
+from .utils import _parse_due_date, log_command, get_command_history, clear_command_history, get_project_version, load_todos
 
 def main():
     todo_ascii_art = """
@@ -31,7 +20,7 @@ def main():
        ╚═╝    ╚═════╝ ╚═════╝   ╚═════╝  
 """
     print(f"{Colors.BOLD}{todo_ascii_art}{Colors.ENDC}")
-    description_text = f"""{Colors.BOLD}{Colors.BLUE}CLI 기반 할 일 목록 관리자 (버전: 0.2.6){Colors.ENDC}
+    description_text = f"""{Colors.BOLD}{Colors.BLUE}CLI 기반 할 일 목록 관리자 (버전: {get_project_version()}){Colors.ENDC}
 
 사용 가능한 명령어:
   add       새로운 할 일을 추가합니다.
@@ -137,13 +126,13 @@ def main():
     is_implicit_list = False
     if len(sys.argv) == 1: # todo만 입력했을 때
         # 할 일 목록이 비어있으면 도움말 출력, 아니면 'list' 명령어 삽입
-        current_todos = load_todos()
-        if not current_todos:
-            parser.print_help()
-            return # 도움말 출력 후 종료
-        else:
-            sys.argv.insert(1, "list")
-            is_implicit_list = True
+        # current_todos = load_todos() # 중복 호출 제거
+        # if not current_todos:
+        #     parser.print_help()
+        #     return # 도움말 출력 후 종료
+        # else:
+        sys.argv.insert(1, "list")
+        is_implicit_list = True
     elif len(sys.argv) > 1:
         first_arg = sys.argv[1]
         # 첫 번째 인자가 유효한 명령어도 아니고, 옵션도 아니라면 'add' 명령어를 삽입
@@ -212,4 +201,4 @@ def main():
         print()
 
 if __name__ == "__main__":
-    main() 
+    main()

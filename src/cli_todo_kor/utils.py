@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from platformdirs import user_data_dir
+import re
 
 APP_NAME = "cli-todo-kor"
 DATA_DIR = user_data_dir(appname=APP_NAME)
@@ -143,3 +144,13 @@ def clear_command_history():
         print("명령어 기록이 삭제되었습니다.")
     else:
         print("삭제할 명령어 기록이 없습니다.")
+
+def get_project_version():
+    pyproject_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'pyproject.toml')
+    if os.path.exists(pyproject_path):
+        with open(pyproject_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            match = re.search(r'version = "([0-9.]+)"\n', content)
+            if match:
+                return match.group(1)
+    return "Unknown"
