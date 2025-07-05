@@ -1,8 +1,9 @@
 import os
 import json
 
-UNDO_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', '.todos_undo.json')
-REDO_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', '.todos_redo.json')
+from .utils import TODO_DIR
+UNDO_FILE = os.path.join(TODO_DIR, '.todos_undo.json')
+REDO_FILE = os.path.join(TODO_DIR, '.todos_redo.json')
 
 def push_undo():
     from .utils import load_todos

@@ -145,12 +145,10 @@ def clear_command_history():
     else:
         print("삭제할 명령어 기록이 없습니다.")
 
+from importlib.metadata import version, PackageNotFoundError
+
 def get_project_version():
-    pyproject_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'pyproject.toml')
-    if os.path.exists(pyproject_path):
-        with open(pyproject_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-            match = re.search(r'version = "([0-9.]+)"', content)
-            if match:
-                return match.group(1)
-    return "Unknown"
+    try:
+        return version("cli-todo-kor")
+    except PackageNotFoundError:
+        return "Unknown"
