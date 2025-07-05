@@ -29,6 +29,7 @@ venv/
 Thumbs.db
 
 # CLI Todo Kor specific
+.gemini/
 .todos_undo.json
 data/todos.json
 data/.todos_redo.json

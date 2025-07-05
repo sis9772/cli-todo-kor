@@ -150,7 +150,7 @@ def get_project_version():
     if os.path.exists(pyproject_path):
         with open(pyproject_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            match = re.search(r'version = "([0-9.]+)"\n', content)
+            match = re.search(r'version = "([0-9.]+)"', content)
             if match:
                 return match.group(1)
     return "Unknown"
