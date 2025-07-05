@@ -161,9 +161,12 @@ def main():
         complete_todo(args.index - 1)
         list_todos()
     elif args.command == "delete":
-        # 여러 개 입력받으므로 각각 1 빼기
-        delete_todo([i-1 for i in args.indexes])
-        list_todos()
+        confirm = input(f"{Colors.YELLOW}정말로 {len(args.indexes)}개의 할 일을 삭제하시겠습니까? (y/N): {Colors.ENDC}").lower()
+        if confirm == 'y':
+            delete_todo([i-1 for i in args.indexes])
+            list_todos()
+        else:
+            print(f"{Colors.BLUE}할 일 삭제를 취소했습니다.{Colors.ENDC}")
     elif args.command == "edit":
         if not any([args.new_description, args.new_due_date, args.new_priority, args.new_tags]):
             print("수정할 내용을 하나 이상 입력해야 합니다. --desc, --due, --priority, --tags 옵션을 확인하세요.")
@@ -171,8 +174,12 @@ def main():
             edit_todo(args.index - 1, args.new_description, args.new_due_date, args.new_priority, args.new_tags)
             list_todos()
     elif args.command == "clear":
-        clear_completed_todos()
-        list_todos()
+        confirm = input(f"{Colors.YELLOW}완료된 모든 할 일을 정말로 삭제하시겠습니까? (y/N): {Colors.ENDC}").lower()
+        if confirm == 'y':
+            clear_completed_todos()
+            list_todos()
+        else:
+            print(f"{Colors.BLUE}완료된 할 일 삭제를 취소했습니다.{Colors.ENDC}")
     elif args.command == "undo":
         pop_undo()
     elif args.command == "redo":
